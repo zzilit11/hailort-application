@@ -1,3 +1,5 @@
+// HailoRT Inference Driver for ResNet 50
+
 #include "hailo/hailort.hpp"
 
 #include <iostream>
