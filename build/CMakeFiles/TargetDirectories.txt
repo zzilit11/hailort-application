@@ -1,0 +1,3 @@
+/home/rtoslab-alpha/workspace/hailort/hailort_examples/build/CMakeFiles/inference_driver.dir
+/home/rtoslab-alpha/workspace/hailort/hailort_examples/build/CMakeFiles/edit_cache.dir
+/home/rtoslab-alpha/workspace/hailort/hailort_examples/build/CMakeFiles/rebuild_cache.dir
