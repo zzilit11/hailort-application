@@ -114,8 +114,7 @@ int main(int argc, char *argv[]) {
                   << "\" frame size: " << frame_size << " bytes" << std::endl;
 
         input_buffers[name] = std::vector<uint8_t>(frame_size, 0);
-        input_views.emplace(name,
-            MemoryView(input_buffers[name].data(), input_buffers[name].size()));
+        input_views.emplace(name, MemoryView(input_buffers[name].data(), input_buffers[name].size()));
     }
 
     for (auto &output_vstream_ref : pipeline->get_output_vstreams()) {
@@ -128,8 +127,7 @@ int main(int argc, char *argv[]) {
 
         output_buffers[name] = std::vector<uint8_t>(frame_size, 0);
         std::cout << "Allocated output buffer of size " << output_buffers[name].size() << " bytes for stream '" << name << "'" << std::endl;
-        output_views.emplace(name,
-            MemoryView(output_buffers[name].data(), output_buffers[name].size()));
+        output_views.emplace(name, MemoryView(output_buffers[name].data(), output_buffers[name].size()));
     }
 
     /* Starting inference */

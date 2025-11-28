@@ -1,3 +1,5 @@
 hailort.log
 inference_driver
+multi_process
+link_libs.md
 build/*
