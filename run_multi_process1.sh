@@ -3,14 +3,11 @@
 set -e
 
 # ======================================================================
-# 모드 선택
+# 모드 선택, frame count 설정
 # ======================================================================
 MODE="$1"
-
-if [ -z "$MODE" ]; then
-    echo "Usage: $0 [default | log]"
-    exit 1
-fi
+FRAME_COUNT="$2"
+BATCH_SIZE="$3"
 
 case "$MODE" in
     default)
@@ -25,6 +22,15 @@ case "$MODE" in
         exit 1
         ;;
 esac
+
+if [ -z "$FRAME_COUNT" ]; then
+    FRAME_COUNT=1000
+fi
+
+if [ -z "$BATCH_SIZE" ]; then
+    BATCH_SIZE=10
+fi
+
 
 # ======================================================================
 # 설정 영역
@@ -64,11 +70,15 @@ for (( i=1; i<=${INSTANCES[0]}; i++ )); do
     log_file="$log_dir/job_1_${i}.log"
     case "$MODE" in
         default)
-            "$EXECUTABLE" "${HEFS[0]}" "${IMAGES[0]}" "${LABELS[0]}" >"$log_file" 2>&1 &
+            "$EXECUTABLE" \
+                "${HEFS[0]}" "${IMAGES[0]}" "${LABELS[0]}" "$FRAME_COUNT" "$BATCH_SIZE" \
+                > "$log_file" 2>&1 &
             ;;
         log)
-            LD_PRELOAD=/usr/local/lib/libloghailort.so  \
-            "$EXECUTABLE" "${HEFS[0]}" "${IMAGES[0]}" "${LABELS[0]}" >"$log_file" 2>&1 &
+            LD_PRELOAD=/usr/local/lib/libloghailort.so \
+            "$EXECUTABLE" \
+                "${HEFS[0]}" "${IMAGES[0]}" "${LABELS[0]}" "$FRAME_COUNT" "$BATCH_SIZE" \
+                > "$log_file" 2>&1 &
             ;;
     esac
     pid=$!

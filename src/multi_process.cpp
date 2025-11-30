@@ -13,7 +13,6 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
-constexpr size_t FRAMES_COUNT = 1000;
 constexpr hailo_format_type_t FORMAT_TYPE = HAILO_FORMAT_TYPE_AUTO;
 constexpr size_t MAX_LAYER_EDGES = 16;
 constexpr uint32_t DEVICE_COUNT = 1;
@@ -26,19 +25,29 @@ struct ThreadData {
     std::vector<std::string> labels;      // 클래스 라벨
 };
 
-Expected<std::shared_ptr<ConfiguredNetworkGroup>> configure_network_group(const std::string &hef_path, VDevice &vdevice)
+Expected<std::shared_ptr<ConfiguredNetworkGroup>> 
+    configure_network_group(const std::string &hef_path, VDevice &vdevice, uint16_t batch_size = 10)
 {
     auto hef = Hef::create(hef_path);
     if (!hef) {
         return make_unexpected(hef.status());
     }
 
-    auto configure_params = vdevice.create_configure_params(hef.value());
-    if (!configure_params) {
-        return make_unexpected(configure_params.status());
+    auto configure_params_exp = vdevice.create_configure_params(hef.value());
+    if (!configure_params_exp) {
+        std::cerr << "Failed to create configure params" << std::endl;
+        return make_unexpected(configure_params_exp.status());
     }
 
-    auto network_groups = vdevice.configure(hef.value(), configure_params.value());
+    auto configure_params = configure_params_exp.value();
+
+    for (auto &ng_pair : configure_params) {
+        auto &ng_params = ng_pair.second;
+        ng_params.batch_size = batch_size;
+        // ng_params.power_mode = HAILO_POWER_MODE_ULTRA_PERFORMANCE;
+    }
+
+    auto network_groups = vdevice.configure(hef.value(), configure_params);
     if (!network_groups) {
         return make_unexpected(network_groups.status());
     }
@@ -55,9 +64,10 @@ Expected<std::shared_ptr<ConfiguredNetworkGroup>> configure_network_group(const 
 void write_all(InputVStream &input,
                std::vector<uint8_t> &data,
                hailo_status &status,
-               size_t thread_id)     // 추가
+               size_t thread_id,
+               size_t frames_count)     // 추가
 {
-    for (size_t i = 0; i < FRAMES_COUNT; i++) {
+    for (size_t i = 0; i < frames_count; i++) {
         std::cout << "[Input Thread " << thread_id << "] frame=" << i << std::endl;
 
         status = input.write(MemoryView(data.data(), data.size()));
@@ -72,11 +82,12 @@ void write_all(InputVStream &input,
 void read_all(OutputVStream &output,
               const std::vector<std::string> &labels,
               hailo_status &status,
-              size_t thread_id)     // 추가
+              size_t thread_id,
+              size_t frames_count)     // 추가
 {
     std::vector<uint8_t> data(output.get_frame_size());
 
-    for (size_t i = 0; i < FRAMES_COUNT; i++) {
+    for (size_t i = 0; i < frames_count; i++) {
         std::cout << "[Output Thread " << thread_id << "] frame=" << i << std::endl;
 
         status = output.read(MemoryView(data.data(), data.size()));
@@ -89,7 +100,8 @@ void read_all(OutputVStream &output,
 
 hailo_status infer(std::vector<InputVStream> &input_streams, 
                    std::vector<OutputVStream> &output_streams, 
-                   ThreadData &thread_data)
+                   ThreadData &thread_data,
+                   size_t frame_count)
 {
     hailo_status status = HAILO_SUCCESS;
     hailo_status input_status[MAX_LAYER_EDGES] = {HAILO_UNINITIALIZED};
@@ -106,7 +118,8 @@ hailo_status infer(std::vector<InputVStream> &input_streams,
             std::ref(output_streams[output_thread_index]),
             std::cref(thread_data.labels),
             std::ref(output_status[output_thread_index]),
-            output_thread_index    // thread ID 전달
+            output_thread_index,    // thread ID 전달
+            frame_count
         );
     }
 
@@ -117,7 +130,8 @@ hailo_status infer(std::vector<InputVStream> &input_streams,
             std::ref(input_streams[input_thread_index]),
             std::ref(thread_data.input_data),
             std::ref(input_status[input_thread_index]),
-            input_thread_index     // thread ID 전달
+            input_thread_index,     // thread ID 전달
+            frame_count
         );
     }
 
@@ -155,14 +169,17 @@ Expected<std::unique_ptr<VDevice>> create_vdevice()
 
 int main(int argc, char **argv)
 {
-    // [변경] 인자 확장: HEF, 이미지 경로, 라벨 파일
-    if (4 > argc) {
-        std::cerr << "Usage: ./multi_process <hef_path> <image_path> <labels_json_path>" << std::endl;
+    // [변경] 인자 확장: HEF, 이미지 경로, 라벨 파일, 프레임 수, 배치 크기
+    if (6 > argc) {
+        std::cerr << "Usage: ./multi_process <hef_path> <image_path> <labels_json> <frame_count> <batch_size>" << std::endl;
         return HAILO_INVALID_ARGUMENT;
     }
+
     std::string hef_path = argv[1];
     std::string image_path = argv[2];
     std::string labels_path = argv[3];
+    size_t frame_count = std::stoul(argv[4]);
+    uint16_t batch_size = static_cast<uint16_t>(std::stoul(argv[5]));
 
     // 1. VDevice 생성
     auto vdevice = create_vdevice();
@@ -172,7 +189,7 @@ int main(int argc, char **argv)
     }
 
     // 2. 네트워크 그룹 설정
-    auto network_group = configure_network_group(hef_path, *vdevice.value());
+    auto network_group = configure_network_group(hef_path, *vdevice.value(), batch_size);
     if (!network_group) {
         std::cerr << "Failed to configure network group" << std::endl;
         return network_group.status();
@@ -228,7 +245,7 @@ int main(int argc, char **argv)
     std::cout << "Starting Infinite Inference on " << hef_path << "..." << std::endl;
 
     // 5. 추론 시작 (무한 루프)
-    auto status = infer(vstreams->first, vstreams->second, thread_data);
+    auto status = infer(vstreams->first, vstreams->second, thread_data, frame_count);
     if (HAILO_SUCCESS != status) {
         std::cerr << "Inference failed with status " << status << std::endl;
         return status;
