@@ -1,6 +1,6 @@
 
 Build the library with Multi-Process Service enabled
 
-"""
-cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DHAILO_BUILD_SERVICE=1 && sudo cmake --build build --config release --target install
-"""
+```bash 
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DHAILO_BUILD_SERVICE=1 sudo cmake --build build --config Release --target install 
+```
