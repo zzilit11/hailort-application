@@ -1,3 +1,15 @@
+/*
+ * Filename: util.cpp
+ *
+ * @Author: Namcheol Lee
+ * @Affiliation: Real-Time Operating System Laboratory, Seoul National University
+ * @Created: 11/24/25
+ * @Contact: {nclee}@redwood.snu.ac.kr
+ *
+ * @Description: Implementation of utility functions for inference driver
+ * 
+ */
+
 #include "util.hpp"
 
 namespace fs = std::filesystem;
@@ -146,7 +158,8 @@ void util::print_topK(const uint8_t *logits, size_t num_classes, std::vector<std
     std::vector<int> indices(num_classes);
     std::iota(indices.begin(), indices.end(), 0);
 
-    std::partial_sort(indices.begin(), indices.begin() + k, indices.end(), [&](int a, int b){
+    std::partial_sort(indices.begin(), indices.begin() + k, indices.end(),
+        [&](int a, int b){
             return logits[a] > logits[b]; // descending
         });
 
@@ -166,13 +179,3 @@ void util::print_topK(const uint8_t *logits, size_t num_classes, std::vector<std
                 << std::endl;
     }
 }
-
-// void utill::is_it_correct(const uint8_t *logits, size_t num_classes, std::vector<std::string> labels){
-//     if (num_classes != 1000){
-//         std::cout << "Warning: expected 1000 classes, got "
-//                 << num_classes << std::endl;
-//     }
-//     std::vector<int> indices(num_classes);
-//     std::iota(indices.begin(), indices.end(), 0);
-//     std::maximum()
-// }

@@ -38,7 +38,7 @@ fi
 readonly EXECUTABLE="./build/multi_process"
 
 # 4: ResNet152
-HEFS[0]="/home/hailo/hailo_models/resnet152_v1.hef"
+HEFS[0]="/home/hailo/models/resnet152_v1.hef"
 IMAGES[0]="/home/hailo/images/_images_4.png"
 LABELS[0]="/home/hailo/labels/imagenet_labels.json"
 INSTANCES[0]=1

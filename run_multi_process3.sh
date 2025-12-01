@@ -38,7 +38,7 @@ fi
 readonly EXECUTABLE="./build/multi_process"
 
 # 3: DenseNet121
-HEFS[0]="/home/hailo/hailo_models/densenet121.hef"
+HEFS[0]="/home/hailo/models/densenet121.hef"
 IMAGES[0]="/home/hailo/images/_images_3.png"
 LABELS[0]="/home/hailo/labels/imagenet_labels.json"
 INSTANCES[0]=1

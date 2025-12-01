@@ -1,3 +1,15 @@
+/*
+ * Filename: util.hpp
+ *
+ * @Author: Namcheol Lee
+ * @Affiliation: Real-Time Operating System Laboratory, Seoul National University
+ * @Created: 11/24/25
+ * @Contact: {nclee}@redwood.snu.ac.kr
+ *
+ * @Description: Headers of utility functions for inference driver
+ * 
+ */
+
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <filesystem>

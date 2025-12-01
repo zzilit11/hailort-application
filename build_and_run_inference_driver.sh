@@ -11,7 +11,7 @@ make
 executable="./inference_driver"
 model="/home/hailo/hailo_models/resnet50_v1.hef"
 image_dir="/home/hailo/images"
-class_labels="/home/hailo/labels/resnet50_class_labels.json"
+class_labels="/home/hailo/labels/imagenet_labels.json"
 # -----------------------------------------
 
 # Select mode: default | log
