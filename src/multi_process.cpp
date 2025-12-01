@@ -9,10 +9,13 @@
 #include "util.hpp" // inference_driver.cpp에서 사용된 유틸리티 헤더
 
 #include <iostream>
+#include <chrono>
 #include <thread>
 #include <vector>
 #include <opencv2/opencv.hpp>
 
+
+// constexpr: 컴파일 시점에 값이 확정되며 변경 불가능한 상수
 constexpr hailo_format_type_t FORMAT_TYPE = HAILO_FORMAT_TYPE_AUTO;
 constexpr size_t MAX_LAYER_EDGES = 16;
 constexpr uint32_t DEVICE_COUNT = 1;
@@ -25,14 +28,20 @@ struct ThreadData {
     std::vector<std::string> labels;      // 클래스 라벨
 };
 
-Expected<std::shared_ptr<ConfiguredNetworkGroup>> 
-    configure_network_group(const std::string &hef_path, VDevice &vdevice, uint16_t batch_size = 10)
+Expected<std::shared_ptr<ConfiguredNetworkGroup>> configure_network_group(const std::string &hef_path, 
+                                                                          VDevice &vdevice, 
+                                                                          uint16_t batch_size = 10, 
+                                                                          uint8_t priority = HAILO_SCHEDULER_PRIORITY_NORMAL,
+                                                                          uint32_t timeout_ms = SCHEDULER_TIMEOUT_MS.count(),
+                                                                          uint32_t threshold = SCHEDULER_THRESHOLD)
 {
+    // Create HEF object from the given file path
     auto hef = Hef::create(hef_path);
     if (!hef) {
         return make_unexpected(hef.status());
     }
 
+    // Create configuration parameters for the VDevice based on the HEF
     auto configure_params_exp = vdevice.create_configure_params(hef.value());
     if (!configure_params_exp) {
         std::cerr << "Failed to create configure params" << std::endl;
@@ -41,24 +50,67 @@ Expected<std::shared_ptr<ConfiguredNetworkGroup>>
 
     auto configure_params = configure_params_exp.value();
 
-    for (auto &ng_pair : configure_params) {
-        auto &ng_params = ng_pair.second;
-        ng_params.batch_size = batch_size;
-        // ng_params.power_mode = HAILO_POWER_MODE_ULTRA_PERFORMANCE;
+    // Apply batch size configuration to all network groups
+    for (auto &network_group_entry : configure_params) {
+        auto &network_group_params = network_group_entry.second; // network_group_entry is a pair of (name, params)
+        network_group_params.batch_size = batch_size;
+        // network_group_params.power_mode = HAILO_POWER_MODE_ULTRA_PERFORMANCE;
     }
 
+    // Create configured network group(s)
     auto network_groups = vdevice.configure(hef.value(), configure_params);
     if (!network_groups) {
         return make_unexpected(network_groups.status());
     }
 
+    // Multi-network HEF is not supported here
     if (1 != network_groups->size()) {
         std::cerr << "Invalid amount of network groups" << std::endl;
         return make_unexpected(HAILO_INTERNAL_FAILURE);
     }
 
-    return std::move(network_groups->at(0));
+    // Get the single configured network group
+    auto network_group = network_groups->at(0);
+
+    // Set scheduler priority (higher number = higher priority)
+    auto status = network_group->set_scheduler_priority(priority);
+    if (HAILO_SUCCESS != status) {
+        return make_unexpected(status);
+    }
+
+    // Set scheduler timeout (maximum allowed time without being scheduled)
+    status = network_group->set_scheduler_timeout(timeout_ms);
+    if (HAILO_SUCCESS != status) {
+        return make_unexpected(status);
+    }
+
+    // Set scheduler threshold (minimum frames required before scheduling)
+    status = network_group->set_scheduler_threshold(threshold);
+    if (HAILO_SUCCESS != status) {
+        return make_unexpected(status);
+    }
+
+    // Return configured network group
+    return std::move(network_group);
 }
+
+Expected<std::unique_ptr<VDevice>> create_vdevice()
+{
+    hailo_vdevice_params_t params;
+    auto status = hailo_init_vdevice_params(&params);
+    if (HAILO_SUCCESS != status) {
+        std::cerr << "Failed init vdevice_params, status = " << status << std::endl;
+        return make_unexpected(status);
+    }
+    
+    params.device_count = DEVICE_COUNT;
+    params.group_id = "SHARED";
+    params.multi_process_service = true; // 멀티 프로세스 활성화
+    params.scheduling_algorithm = HAILO_SCHEDULING_ALGORITHM_ROUND_ROBIN;
+
+    return VDevice::create(params);
+}
+
 
 // [변경] 입력 스레드: 미리 전처리된 이미지를 계속해서 Write 합니다.
 void write_all(InputVStream &input,
@@ -151,35 +203,24 @@ hailo_status infer(std::vector<InputVStream> &input_streams,
     return status;
 }
 
-Expected<std::unique_ptr<VDevice>> create_vdevice()
-{
-    hailo_vdevice_params_t params;
-    auto status = hailo_init_vdevice_params(&params);
-    if (HAILO_SUCCESS != status) {
-        std::cerr << "Failed init vdevice_params, status = " << status << std::endl;
-        return make_unexpected(status);
-    }
-    
-    params.device_count = DEVICE_COUNT;
-    params.multi_process_service = true; // 멀티 프로세스 활성화
-    params.group_id = "SHARED";
-
-    return VDevice::create(params);
-}
-
 int main(int argc, char **argv)
 {
-    // [변경] 인자 확장: HEF, 이미지 경로, 라벨 파일, 프레임 수, 배치 크기
-    if (6 > argc) {
-        std::cerr << "Usage: ./multi_process <hef_path> <image_path> <labels_json> <frame_count> <batch_size>" << std::endl;
+    // HEF 경로, 이미지 경로, 라벨 경로, 프레임 수, 배치 크기, 우선순위, 타임아웃, 임계값
+    if (9 > argc) {
+        std::cerr << "Usage: ./multi_process <hef_path> <image_path> "
+                  << "<labels_json> <frame_count> <batch_size> "
+                  << "<priority> <timeout_ms> <threshold>" << std::endl;
         return HAILO_INVALID_ARGUMENT;
     }
 
     std::string hef_path = argv[1];
     std::string image_path = argv[2];
     std::string labels_path = argv[3];
-    size_t frame_count = std::stoul(argv[4]);
+    size_t frame_count = static_cast<size_t>(std::stoul(argv[4]));
     uint16_t batch_size = static_cast<uint16_t>(std::stoul(argv[5]));
+    uint8_t priority = static_cast<uint8_t>(std::stoul(argv[6]));
+    uint32_t timeout_ms = static_cast<uint32_t>(std::stoul(argv[7]));
+    uint32_t threshold = static_cast<uint32_t>(std::stoul(argv[8]));
 
     // 1. VDevice 생성
     auto vdevice = create_vdevice();
@@ -189,13 +230,14 @@ int main(int argc, char **argv)
     }
 
     // 2. 네트워크 그룹 설정
-    auto network_group = configure_network_group(hef_path, *vdevice.value(), batch_size);
+    auto network_group = configure_network_group(hef_path, *vdevice.value(), batch_size, priority, timeout_ms, threshold);
     if (!network_group) {
         std::cerr << "Failed to configure network group" << std::endl;
         return network_group.status();
     }
 
     // 3. VStream 생성
+    // input layer 개수 = InputVStream 개수, output layer 개수 = OutputVStream 개수
     auto vstreams = VStreamsBuilder::create_vstreams(*network_group.value(), {}, FORMAT_TYPE);
     if (!vstreams) {
         std::cerr << "Failed creating vstreams: " << vstreams.status() << std::endl;
@@ -230,10 +272,10 @@ int main(int argc, char **argv)
         return HAILO_INVALID_ARGUMENT;
     }
 
-    // util 함수를 사용하여 ResNet 형식으로 전처리
+    // 4-4. util 함수를 사용하여 ResNet 형식으로 전처리
     cv::Mat preprocessed = util::preprocess_image_resnet_uint8(img, qp_scale, qp_zp);
     
-    // 데이터 복사
+    // 4-5. 데이터 복사
     thread_data.input_data.resize(input_vstream.get_frame_size());
     if (thread_data.input_data.size() != preprocessed.total() * preprocessed.channels()) {
         std::cerr << "Size mismatch: Buffer " << thread_data.input_data.size() 
@@ -244,7 +286,7 @@ int main(int argc, char **argv)
 
     std::cout << "Starting Infinite Inference on " << hef_path << "..." << std::endl;
 
-    // 5. 추론 시작 (무한 루프)
+    // 5. 추론 시작
     auto status = infer(vstreams->first, vstreams->second, thread_data, frame_count);
     if (HAILO_SUCCESS != status) {
         std::cerr << "Inference failed with status " << status << std::endl;
