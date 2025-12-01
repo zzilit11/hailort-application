@@ -1,7 +1,7 @@
 Starting Infinite Inference on /home/hailo/models/densenet121.hef...
 [Input Thread 0] frame=0
-[Input Thread 0] frame=1
 [Output Thread 0] frame=0
+[Input Thread 0] frame=1
 [Input Thread 0] frame=2
 [Input Thread 0] frame=3
 [Input Thread 0] frame=4
@@ -10,8 +10,8 @@ Starting Infinite Inference on /home/hailo/models/densenet121.hef...
 [Input Thread 0] frame=7
 [Input Thread 0] frame=8
 [Input Thread 0] frame=9
-[Input Thread [Output Thread 0] frame=1
-0] frame=10
+[Input Thread 0] frame=10
+[Output Thread 0] frame=1
 [Input Thread 0] frame=11
 [Input Thread 0] frame=12
 [Input Thread 0] frame=13
@@ -28,18 +28,18 @@ Starting Infinite Inference on /home/hailo/models/densenet121.hef...
 [Input Thread 0] frame=24
 [Input Thread 0] frame=25
 [Input Thread 0] frame=26
-[Input Thread 0] frame=27
-[Input Thread 0] frame=28
 [Output Thread 0] frame=2
+[Input Thread 0] frame=27
 [Output Thread 0] frame=3
-[Input Thread 0] frame=29
+[Input Thread 0] frame=28
 [Output Thread 0] frame=4
 [Output Thread 0] frame=5
-[Input Thread 0] frame=30
+[Input Thread 0] frame=29
 [Output Thread 0] frame=6
-[Input Thread 0] frame=31
 [Output Thread 0] frame=7
+[Input Thread 0] frame=30
 [Output Thread 0] frame=8
+[Input Thread 0] frame=31
 [Output Thread 0] frame=9
 [Output Thread 0] frame=10
 [Output Thread 0] frame=11

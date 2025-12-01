@@ -17,3 +17,19 @@ If the service does not start properly, restart it:
 ```bash 
 sudo systemctl restart hailort.service
 ```
+
+**Configure the Hailo Service**
+(Optional) Edit the service configuration file if needed:
+
+```bash 
+cat /etc/default/hailort_service
+sudo nano /etc/default/hailort_service
+```
+
+Apply configuration changes:
+
+```bash 
+sudo systemctl daemon-reload
+```
+
+
