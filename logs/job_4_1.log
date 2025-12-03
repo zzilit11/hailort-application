@@ -1,7 +1,8 @@
+[2025-12-03 14:18:13.160] [12770] [12770] [HailoRT] [warning] [device_internal.cpp:34] [DeviceBase] libhailort is running in "debug" mode. Overall performance might be affected!
 Starting Infinite Inference on /home/hailo/models/resnet152_v1.hef...
 [Input Thread 0] frame=0
-[Output Thread 0] frame=0
 [Input Thread 0] frame=1
+[Output Thread 0] frame=0
 [Input Thread 0] frame=2
 [Input Thread 0] frame=3
 [Input Thread 0] frame=4
@@ -1897,14 +1898,14 @@ Starting Infinite Inference on /home/hailo/models/resnet152_v1.hef...
 [Output Thread 0] frame=934
 [Output Thread 0] frame=935
 [Output Thread 0] frame=936
-[Output Thread 0] frame=937
-[Output Thread 0] frame=938
-[Output Thread 0] frame=939
-[Output Thread 0] frame=940
 [Input Thread 0] frame=961
+[Output Thread 0] frame=937
 [Input Thread 0] frame=962
+[Output Thread 0] frame=938
 [Input Thread 0] frame=963
+[Output Thread 0] frame=939
 [Input Thread 0] frame=964
+[Output Thread 0] frame=940
 [Input Thread 0] frame=965
 [Input Thread 0] frame=966
 [Input Thread 0] frame=967
@@ -1919,10 +1920,10 @@ Starting Infinite Inference on /home/hailo/models/resnet152_v1.hef...
 [Output Thread 0] frame=946
 [Output Thread 0] frame=947
 [Output Thread 0] frame=948
-[Output Thread 0] frame=949
-[Output Thread 0] frame=950
 [Input Thread 0] frame=971
+[Output Thread 0] frame=949
 [Input Thread 0] frame=972
+[Output Thread 0] frame=950
 [Input Thread 0] frame=973
 [Input Thread 0] frame=974
 [Input Thread 0] frame=975
@@ -1938,13 +1939,13 @@ Starting Infinite Inference on /home/hailo/models/resnet152_v1.hef...
 [Output Thread 0] frame=955
 [Output Thread 0] frame=956
 [Output Thread 0] frame=957
-[Output Thread 0] frame=958
-[Output Thread 0] frame=959
-[Output Thread 0] frame=960
 [Input Thread 0] frame=981
 [Input Thread 0] frame=982
+[Output Thread 0] frame=958
 [Input Thread 0] frame=983
+[Output Thread 0] frame=959
 [Input Thread 0] frame=984
+[Output Thread 0] frame=960
 [Input Thread 0] frame=985
 [Input Thread 0] frame=986
 [Input Thread 0] frame=987
@@ -1958,12 +1959,12 @@ Starting Infinite Inference on /home/hailo/models/resnet152_v1.hef...
 [Output Thread 0] frame=965
 [Output Thread 0] frame=966
 [Output Thread 0] frame=967
-[Output Thread 0] frame=968
-[Output Thread 0] frame=969
-[Output Thread 0] frame=970
 [Input Thread 0] frame=991
+[Output Thread 0] frame=968
 [Input Thread 0] frame=992
-[Input Thread 0] frame=993
+[Output Thread 0] frame=969
+[Output Thread [Input Thread 00] frame=993] frame=970
+
 [Input Thread 0] frame=994
 [Input Thread 0] frame=995
 [Input Thread 0] frame=996
@@ -1999,6 +2000,3 @@ Starting Infinite Inference on /home/hailo/models/resnet152_v1.hef...
 [Output Thread 0] frame=997
 [Output Thread 0] frame=998
 [Output Thread 0] frame=999
-[HailoRT] [error] CHECK_GRPC_STATUS failed with error code: 4.
-[HailoRT] [warning] Make sure HailoRT service is enabled and active!
-[HailoRT] [critical] VDevice_release failed!

@@ -20,6 +20,9 @@ constexpr hailo_format_type_t FORMAT_TYPE = HAILO_FORMAT_TYPE_AUTO;
 constexpr size_t MAX_LAYER_EDGES = 16;
 constexpr uint32_t DEVICE_COUNT = 1;
 
+constexpr std::chrono::milliseconds SCHEDULER_TIMEOUT_MS(100);
+constexpr uint32_t SCHEDULER_THRESHOLD = 3;
+
 using namespace hailort;
 
 // 스레드에 전달할 데이터 구조체
@@ -32,7 +35,7 @@ Expected<std::shared_ptr<ConfiguredNetworkGroup>> configure_network_group(const 
                                                                           VDevice &vdevice, 
                                                                           uint16_t batch_size = 10, 
                                                                           uint8_t priority = HAILO_SCHEDULER_PRIORITY_NORMAL,
-                                                                          uint32_t timeout_ms = SCHEDULER_TIMEOUT_MS.count(),
+                                                                          std::chrono::milliseconds timeout_ms = SCHEDULER_TIMEOUT_MS,
                                                                           uint32_t threshold = SCHEDULER_THRESHOLD)
 {
     // Create HEF object from the given file path
@@ -230,7 +233,8 @@ int main(int argc, char **argv)
     }
 
     // 2. 네트워크 그룹 설정
-    auto network_group = configure_network_group(hef_path, *vdevice.value(), batch_size, priority, timeout_ms, threshold);
+    auto timeout = std::chrono::milliseconds(timeout_ms);
+    auto network_group = configure_network_group(hef_path, *vdevice.value(), batch_size, priority, timeout, threshold);
     if (!network_group) {
         std::cerr << "Failed to configure network group" << std::endl;
         return network_group.status();

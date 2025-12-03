@@ -1,20 +1,13 @@
 #!/bin/bash
 
-set -e
-
-# ======================================================================
-# 빌드
-# ======================================================================
-if [ ! -d "./build" ]; then
-    echo "Error: build directory './build' not found."
-    echo "Please run cmake and create build directory first."
-    exit 1
-fi
+BUILD_DIR="./build"
 
 echo "============================================"
-echo " Building project in ./build"
+echo " Configuring project with CMake"
 echo "============================================"
-(
-    cd ./build
-    make
-)
+cmake -S . -B "$BUILD_DIR"
+
+echo "============================================"
+echo " Building project in $BUILD_DIR"
+echo "============================================"
+cmake --build "$BUILD_DIR"

@@ -1,0 +1,17 @@
+============================================
+ Starting Multi-Process Manager (JSON Config)
+ Mode: default
+============================================
+>> Launching Job Set #1
+   - Model: resnet50_v1.hef
+   -> Started PID=12622 (log: ./logs/job_1_1.log)
+>> Launching Job Set #2
+   - Model: mobilenetv2.hef
+   -> Started PID=12656 (log: ./logs/job_2_1.log)
+>> Launching Job Set #3
+   - Model: densenet121.hef
+   -> Started PID=12707 (log: ./logs/job_3_1.log)
+>> Launching Job Set #4
+   - Model: resnet152_v1.hef
+   -> Started PID=12769 (log: ./logs/job_4_1.log)
+All jobs launched.

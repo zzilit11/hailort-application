@@ -9,7 +9,7 @@ make
 
 # ------------- Configuration -------------
 executable="./inference_driver"
-model="/home/hailo/hailo_models/resnet50_v1.hef"
+model="/home/hailo/models/resnet50_v1.hef"
 image_dir="/home/hailo/images"
 class_labels="/home/hailo/labels/imagenet_labels.json"
 # -----------------------------------------

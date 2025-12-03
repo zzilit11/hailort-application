@@ -1,38 +1,65 @@
 #!/bin/bash
 set -e
 
-rm -rf logs
-mkdir -p logs
+sudo systemctl restart hailort.service
 
-MODE="$1"
-FRAME_COUNT="$2"
-BATCH_SIZE="$3"
+CONFIG_FILE="run_configuration.json"
+WORKER_SCRIPT="./run_worker.sh"
 
-if [ -z "$MODE" ]; then
-    echo "Usage: $0 [default | log]"
+# jq 설치 확인
+if ! command -v jq &> /dev/null; then
+    echo "Error: 'jq' is not installed. Install it using 'sudo apt install jq'"
     exit 1
 fi
 
-if [ -z "$FRAME_COUNT" ]; then
-    FRAME_COUNT=1000
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Error: Configuration file $CONFIG_FILE not found."
+    exit 1
 fi
 
-if [ -z "$BATCH_SIZE" ]; then
-    BATCH_SIZE=10
-fi
+# Global Settings 파싱
+MODE=$(jq -r '.global_settings.mode' "$CONFIG_FILE")
+LOG_DIR=$(jq -r '.global_settings.log_dir' "$CONFIG_FILE")
 
-echo "[RUN] run_multi_process1.sh"
+# 로그 디렉토리 초기화
+rm -rf "$LOG_DIR"
+mkdir -p "$LOG_DIR"
 
-./run_multi_process1.sh "$MODE" "$FRAME_COUNT" "$BATCH_SIZE" &
+echo "============================================"
+echo " Starting Multi-Process Manager (JSON Config)"
+echo " Mode: $MODE"
+echo "============================================"
 
-echo "[RUN] run_multi_process2.sh"
-./run_multi_process2.sh "$MODE" "$FRAME_COUNT" "$BATCH_SIZE" &
+# Jobs 배열 순회
+# jq -c를 사용하여 각 객체를 한 줄의 문자열로 추출
+jq -c '.jobs[]' "$CONFIG_FILE" | while read -r job; do
+    
+    # 각 필드 추출
+    ID=$(echo "$job" | jq -r '.id')
+    HEF=$(echo "$job" | jq -r '.hef_path')
+    IMAGE=$(echo "$job" | jq -r '.image_path')
+    LABEL=$(echo "$job" | jq -r '.labels_path')
+    FRAMES=$(echo "$job" | jq -r '.frame_count')
+    BATCH=$(echo "$job" | jq -r '.batch_size')
+    PRIORITY=$(echo "$job" | jq -r '.priority')
+    TIMEOUT=$(echo "$job" | jq -r '.timeout_ms')
+    THRESHOLD=$(echo "$job" | jq -r '.threshold')
+    INSTANCES=$(echo "$job" | jq -r '.instances')
 
-echo "[RUN] run_multi_process3.sh"
-./run_multi_process3.sh "$MODE" "$FRAME_COUNT" "$BATCH_SIZE" &
+    echo ">> Launching Job Set #$ID"
+    echo "   - Model: $(basename "$HEF")"
+    
+    # Instance 수만큼 반복 실행
+    for (( i=1; i<=INSTANCES; i++ )); do
+        LOG_FILE="$LOG_DIR/job_${ID}_${i}.log"
+        
+        # 워커 스크립트 실행
+        "$WORKER_SCRIPT" \
+            "$MODE" "$HEF" "$IMAGE" "$LABEL" \
+            "$FRAMES" "$BATCH" "$PRIORITY" "$TIMEOUT" "$THRESHOLD" \
+            "$LOG_FILE"
+    done
+done
 
-echo "[RUN] run_multi_process4.sh"
-./run_multi_process4.sh "$MODE" "$FRAME_COUNT" "$BATCH_SIZE" &
-
-echo "All multi-process scripts launched."
+echo "All jobs launched."
 wait
