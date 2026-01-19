@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # Exit on any failure
-set -e 
+#set -e 
 
 # Build the inference driver
 cd ./build
 make
 
 # ------------- Configuration -------------
-executable="./inference_driver"
-model="/home/hailo/models/resnet50_v1.hef"
-image_dir="/home/hailo/images"
-class_labels="/home/hailo/labels/imagenet_labels.json"
+executable="/home/taespberry/WORKSPACE/hailort_examples/build/inference_driver"
+model="/home/taespberry/WORKSPACE/models/resnet50_v1.hef"
+image_dir="/home/taespberry/WORKSPACE/images"
+class_labels="/home/taespberry/WORKSPACE/labels/imagenet_labels.json"
 # -----------------------------------------
 
 # Select mode: default | log

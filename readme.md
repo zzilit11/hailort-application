@@ -25,12 +25,12 @@ cat /etc/default/hailort_service
 # 4. Enable and start service by running: `sudo systemctl enable --now hailort.service`
 
 [Service]
-HAILORT_LOGGER_PATH="/home/hailo/log_service"
+HAILORT_LOGGER_PATH="/home/taespberry/WORKSPACE/log_service"
 HAILO_MONITOR=1
-HAILO_TRACE=1
+HAILO_TRACE=scheduler
 HAILO_TRACE_TIME_IN_SECONDS_BOUNDED_DUMP=0
 HAILO_TRACE_SIZE_IN_KB_BOUNDED_DUMP=0
-HAILO_TRACE_PATH="/home/hailo/traces"
+HAILO_TRACE_PATH="/home/taespberry/WORKSPACE/traces"
 ```
 
 **Enable Service**
