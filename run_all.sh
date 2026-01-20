@@ -3,7 +3,7 @@ set -e
 
 sudo systemctl restart hailort.service
 
-CONFIG_FILE="run_configuration.json"
+CONFIG_FILE="configuration.json"
 WORKER_SCRIPT="./run_worker.sh"
 
 # jq 설치 확인

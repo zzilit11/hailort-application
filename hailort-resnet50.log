@@ -1,0 +1,95 @@
+[2026-01-20 00:34:02.910] [245390] [HailoRT] [info] [vdevice.cpp:535] [create] Creating vdevice with params: device_count: 1, scheduling_algorithm: ROUND_ROBIN, multi_process_service: false
+[2026-01-20 00:34:02.923] [245390] [HailoRT] [info] [device.cpp:51] [Device] OS Version: Linux 6.8.0-1031-raspi #35-Ubuntu SMP PREEMPT_DYNAMIC Thu Jul  3 15:00:20 UTC 2025 aarch64
+[2026-01-20 00:34:02.923] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000000 (HAILO_CONTROL_OPCODE_IDENTIFY), len=20, cpu_id=0
+[2026-01-20 00:34:02.923] [245390] [HailoRT] [info] [control.cpp:113] [control__parse_identify_results] firmware_version is: 4.23.0
+[2026-01-20 00:34:02.923] [245390] [HailoRT] [info] [vdevice.cpp:682] [create] VDevice Infos: 0000:01:00.0
+[2026-01-20 00:34:02.939] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000033 (HAILO_CONTROL_OPCODE_GET_DEVICE_INFORMATION), len=20, cpu_id=0
+[2026-01-20 00:34:02.940] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000033 (HAILO_CONTROL_OPCODE_GET_DEVICE_INFORMATION), len=20, cpu_id=0
+[2026-01-20 00:34:02.940] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000025 (HAILO_CONTROL_OPCODE_CHANGE_CONTEXT_SWITCH_STATUS), len=42, cpu_id=1
+[2026-01-20 00:34:02.940] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000047 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_CLEAR_CONFIGURED_APPS), len=20, cpu_id=1
+[2026-01-20 00:34:02.946] [245390] [HailoRT] [info] [internal_buffer_manager.cpp:77] [print_execution_results] Planned internal buffer memory: CMA=0 CMA-Desc=131072 Pinned=126464. memory to edge layer usage factor is 1
+[2026-01-20 00:34:02.946] [245390] [HailoRT] [info] [internal_buffer_manager.cpp:86] [print_execution_results] Default Internal buffer planner executed successfully
+[2026-01-20 00:34:02.946] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 00:34:02.946] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 00:34:02.955] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 00:34:02.974] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 00:34:02.993] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 00:34:03.005] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000020 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_NETWORK_GROUP_HEADER), len=56, cpu_id=1
+[2026-01-20 00:34:03.005] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=102, cpu_id=1
+[2026-01-20 00:34:03.005] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=585, cpu_id=1
+[2026-01-20 00:34:03.005] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=1092, cpu_id=1
+[2026-01-20 00:34:03.006] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=1500, cpu_id=1
+[2026-01-20 00:34:03.006] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=814, cpu_id=1
+[2026-01-20 00:34:03.007] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=1495, cpu_id=1
+[2026-01-20 00:34:03.008] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=821, cpu_id=1
+[2026-01-20 00:34:03.008] [245390] [HailoRT] [info] [device_internal.cpp:57] [configure] Configuring HEF took 68.678411 milliseconds
+[2026-01-20 00:34:03.010] [245390] [HailoRT] [info] [vdevice.cpp:780] [configure] Configuring HEF on VDevice took 70.438412 milliseconds
+[2026-01-20 00:34:03.010] [245390] [HailoRT] [info] [edge_elements.cpp:52] [create] Created (HwWriteEl3resnet50_v1/input_layer1 | hw_frame_size: 150528)
+[2026-01-20 00:34:03.010] [245390] [HailoRT] [info] [vstream.cpp:754] [InputVStreamImpl] Creating resnet50_v1/input_layer1...
+[2026-01-20 00:34:03.010] [245390] [HailoRT] [info] [vstream_builder.cpp:102] [create_inputs] Input pipeline 'resnet50_v1/input_layer1': (HwWriteEl3resnet50_v1/input_layer1 | hw_frame_size: 150528) >> HW
+[2026-01-20 00:34:03.010] [245390] [HailoRT] [info] [edge_elements.cpp:287] [create] Created (HwReadEl0resnet50_v1/fc1 | hw_frame_size: 1000)
+[2026-01-20 00:34:03.010] [245390] [HailoRT] [info] [queue_elements.cpp:800] [create] Created (UserBuffQEl0resnet50_v1/fc1 | timeout: 10s)
+[2026-01-20 00:34:03.010] [245390] [HailoRT] [info] [vstream.cpp:1114] [OutputVStreamImpl] Creating resnet50_v1/fc1...
+[2026-01-20 00:34:03.010] [245390] [HailoRT] [info] [vstream_builder.cpp:220] [create_outputs] Output pipeline 'resnet50_v1/fc1': HW >> (HwReadEl0resnet50_v1/fc1 | hw_frame_size: 1000) >> (UserBuffQEl0resnet50_v1/fc1 | timeout: 10s)
+[2026-01-20 00:34:03.020] [245394] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000025 (HAILO_CONTROL_OPCODE_CHANGE_CONTEXT_SWITCH_STATUS), len=42, cpu_id=1
+[2026-01-20 00:34:03.020] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=0, buffers_count=1
+[2026-01-20 00:34:03.020] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff9e858000, size=150528
+[2026-01-20 00:34:03.020] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=0, buffers_count=1
+[2026-01-20 00:34:03.020] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffffaf00b000, size=1000
+[2026-01-20 00:34:03.054] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=294, buffers_count=1
+[2026-01-20 00:34:03.054] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff9e833000, size=150528
+[2026-01-20 00:34:03.054] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=2, buffers_count=1
+[2026-01-20 00:34:03.054] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffffaf00a000, size=1000
+[2026-01-20 00:34:03.078] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=588, buffers_count=1
+[2026-01-20 00:34:03.078] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff9e80e000, size=150528
+[2026-01-20 00:34:03.078] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=4, buffers_count=1
+[2026-01-20 00:34:03.078] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffffaf009000, size=1000
+[2026-01-20 00:34:03.104] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=882, buffers_count=1
+[2026-01-20 00:34:03.104] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff9e7e9000, size=150528
+[2026-01-20 00:34:03.104] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=6, buffers_count=1
+[2026-01-20 00:34:03.104] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffffaf008000, size=1000
+[2026-01-20 00:34:03.129] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=1176, buffers_count=1
+[2026-01-20 00:34:03.129] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff9e7c4000, size=150528
+[2026-01-20 00:34:03.130] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=8, buffers_count=1
+[2026-01-20 00:34:03.130] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffffaf007000, size=1000
+[2026-01-20 00:34:03.154] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=1470, buffers_count=1
+[2026-01-20 00:34:03.154] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff9e79f000, size=150528
+[2026-01-20 00:34:03.154] [245394] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=10, buffers_count=1
+[2026-01-20 00:34:03.154] [245394] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffffaf006000, size=1000
+[2026-01-20 00:34:03.174] [245397] [HailoRT] [info] [queue_elements.cpp:855] [run_in_thread] Shutdown event was signaled in dequeue of UserBuffQEl0resnet50_v1/fc1!
+[2026-01-20 00:34:03.174] [245397] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element UserBuffQEl0resnet50_v1/fc1 is not running anymore, exiting..
+[2026-01-20 00:34:03.174] [245390] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element UserBuffQEl0resnet50_v1/fc1 has 0 frames in his Queue on destruction
+[2026-01-20 00:34:03.174] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000025 (HAILO_CONTROL_OPCODE_CHANGE_CONTEXT_SWITCH_STATUS), len=42, cpu_id=1
+[2026-01-20 00:34:03.175] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffa0005000, size=5480960, direction=0
+[2026-01-20 00:34:03.176] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9fae5000, size=5372416, direction=0
+[2026-01-20 00:34:03.178] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9f68e000, size=4548608, direction=0
+[2026-01-20 00:34:03.179] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9f25f000, size=4384256, direction=0
+[2026-01-20 00:34:03.181] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffa0540000, size=126464, direction=2
+[2026-01-20 00:34:03.181] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9ed53000, size=5292032, direction=0
+[2026-01-20 00:34:03.182] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9e87d000, size=5067264, direction=0
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf013000, size=4096, direction=0
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf012000, size=4096, direction=0
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf011000, size=4096, direction=0
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf010000, size=4096, direction=0
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf00f000, size=4096, direction=0
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf00e000, size=4096, direction=0
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf00d000, size=4096, direction=0
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf00c000, size=4096, direction=0
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf00b000, size=1000, direction=1
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf00a000, size=1000, direction=1
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf009000, size=1000, direction=1
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf008000, size=1000, direction=1
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf007000, size=1000, direction=1
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf006000, size=1000, direction=1
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf005000, size=1000, direction=1
+[2026-01-20 00:34:03.184] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffffaf004000, size=1000, direction=1
+[2026-01-20 00:34:03.185] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9e858000, size=150528, direction=0
+[2026-01-20 00:34:03.185] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9e833000, size=150528, direction=0
+[2026-01-20 00:34:03.185] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9e80e000, size=150528, direction=0
+[2026-01-20 00:34:03.185] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9e7e9000, size=150528, direction=0
+[2026-01-20 00:34:03.185] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9e7c4000, size=150528, direction=0
+[2026-01-20 00:34:03.185] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9e79f000, size=150528, direction=0
+[2026-01-20 00:34:03.185] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9e77a000, size=150528, direction=0
+[2026-01-20 00:34:03.185] [245390] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9e755000, size=150528, direction=0
+[2026-01-20 00:34:03.185] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000025 (HAILO_CONTROL_OPCODE_CHANGE_CONTEXT_SWITCH_STATUS), len=42, cpu_id=1
+[2026-01-20 00:34:03.185] [245390] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000047 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_CLEAR_CONFIGURED_APPS), len=20, cpu_id=1

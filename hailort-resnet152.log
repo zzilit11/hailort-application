@@ -1,0 +1,516 @@
+[2026-01-20 11:41:08.705] [291973] [HailoRT] [info] [vdevice.cpp:535] [create] Creating vdevice with params: device_count: 1, scheduling_algorithm: ROUND_ROBIN, multi_process_service: false
+[2026-01-20 11:41:08.718] [291973] [HailoRT] [info] [device.cpp:51] [Device] OS Version: Linux 6.8.0-1031-raspi #35-Ubuntu SMP PREEMPT_DYNAMIC Thu Jul  3 15:00:20 UTC 2025 aarch64
+[2026-01-20 11:41:08.718] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000000 (HAILO_CONTROL_OPCODE_IDENTIFY), len=20, cpu_id=0
+[2026-01-20 11:41:08.718] [291973] [HailoRT] [info] [control.cpp:113] [control__parse_identify_results] firmware_version is: 4.23.0
+[2026-01-20 11:41:08.718] [291973] [HailoRT] [info] [vdevice.cpp:682] [create] VDevice Infos: 0000:01:00.0
+[2026-01-20 11:41:08.741] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000033 (HAILO_CONTROL_OPCODE_GET_DEVICE_INFORMATION), len=20, cpu_id=0
+[2026-01-20 11:41:08.741] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000033 (HAILO_CONTROL_OPCODE_GET_DEVICE_INFORMATION), len=20, cpu_id=0
+[2026-01-20 11:41:08.741] [291973] [HailoRT] [info] [control.cpp:2783] [reset_context_switch_state_machine] Control::reset_context_switch_state_machine called. Resetting context switch state.
+[2026-01-20 11:41:08.741] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000025 (HAILO_CONTROL_OPCODE_CHANGE_CONTEXT_SWITCH_STATUS), len=42, cpu_id=1
+[2026-01-20 11:41:08.741] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000047 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_CLEAR_CONFIGURED_APPS), len=20, cpu_id=1
+[2026-01-20 11:41:08.747] [291973] [HailoRT] [info] [internal_buffer_manager.cpp:77] [print_execution_results] Planned internal buffer memory: CMA=0 CMA-Desc=393216 Pinned=503808. memory to edge layer usage factor is 0.6895585
+[2026-01-20 11:41:08.747] [291973] [HailoRT] [info] [internal_buffer_manager.cpp:86] [print_execution_results] Default Internal buffer planner executed successfully
+[2026-01-20 11:41:08.747] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 11:41:08.747] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 11:41:08.754] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 11:41:08.754] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 4046448 bytes. Stream Index: 1
+[2026-01-20 11:41:08.758] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 7904 descriptors. Offset: 4046448
+[2026-01-20 11:41:08.758] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 4810080 bytes. Stream Index: 0
+[2026-01-20 11:41:08.762] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 9395 descriptors. Offset: 4810080
+[2026-01-20 11:41:08.771] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 11:41:08.771] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 1000200 bytes. Stream Index: 1
+[2026-01-20 11:41:08.772] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 1954 descriptors. Offset: 1000200
+[2026-01-20 11:41:08.772] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 868632 bytes. Stream Index: 0
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 1697 descriptors. Offset: 868632
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 227064 bytes. Stream Index: 1
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 444 descriptors. Offset: 227064
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 76504 bytes. Stream Index: 0
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 150 descriptors. Offset: 76504
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 16616 bytes. Stream Index: 0
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 33 descriptors. Offset: 16616
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 6800 bytes. Stream Index: 1
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 14 descriptors. Offset: 6800
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 17304 bytes. Stream Index: 0
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 34 descriptors. Offset: 17304
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 30768 bytes. Stream Index: 0
+[2026-01-20 11:41:08.773] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 61 descriptors. Offset: 30768
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 50160 bytes. Stream Index: 0
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 98 descriptors. Offset: 50160
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 23344 bytes. Stream Index: 0
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 46 descriptors. Offset: 23344
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 56536 bytes. Stream Index: 0
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 111 descriptors. Offset: 56536
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 80128 bytes. Stream Index: 0
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 157 descriptors. Offset: 80128
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 79312 bytes. Stream Index: 0
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 155 descriptors. Offset: 79312
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 32832 bytes. Stream Index: 0
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 65 descriptors. Offset: 32832
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 56400 bytes. Stream Index: 0
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 111 descriptors. Offset: 56400
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 33416 bytes. Stream Index: 1
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 66 descriptors. Offset: 33416
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 39376 bytes. Stream Index: 1
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 77 descriptors. Offset: 39376
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 146552 bytes. Stream Index: 1
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 287 descriptors. Offset: 146552
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 94264 bytes. Stream Index: 1
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 185 descriptors. Offset: 94264
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 196296 bytes. Stream Index: 1
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 384 descriptors. Offset: 196296
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 45632 bytes. Stream Index: 1
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 90 descriptors. Offset: 45632
+[2026-01-20 11:41:08.774] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 55296 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 108 descriptors. Offset: 55296
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 206400 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 404 descriptors. Offset: 206400
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 35344 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 70 descriptors. Offset: 35344
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 51416 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 101 descriptors. Offset: 51416
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 28992 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 57 descriptors. Offset: 28992
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 93952 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 184 descriptors. Offset: 93952
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 86408 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 169 descriptors. Offset: 86408
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 50712 bytes. Stream Index: 0
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 100 descriptors. Offset: 50712
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 79704 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 156 descriptors. Offset: 79704
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 50576 bytes. Stream Index: 0
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 99 descriptors. Offset: 50576
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 19016 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 38 descriptors. Offset: 19016
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 32216 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 63 descriptors. Offset: 32216
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 143776 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 281 descriptors. Offset: 143776
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 18672 bytes. Stream Index: 1
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 37 descriptors. Offset: 18672
+[2026-01-20 11:41:08.775] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 108216 bytes. Stream Index: 1
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 212 descriptors. Offset: 108216
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 37368 bytes. Stream Index: 1
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 73 descriptors. Offset: 37368
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 15432 bytes. Stream Index: 1
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 31 descriptors. Offset: 15432
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 18816 bytes. Stream Index: 1
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 37 descriptors. Offset: 18816
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 13744 bytes. Stream Index: 1
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 27 descriptors. Offset: 13744
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 104480 bytes. Stream Index: 1
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 205 descriptors. Offset: 104480
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 34768 bytes. Stream Index: 1
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 68 descriptors. Offset: 34768
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 85992 bytes. Stream Index: 0
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 168 descriptors. Offset: 85992
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 173280 bytes. Stream Index: 1
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 339 descriptors. Offset: 173280
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 82928 bytes. Stream Index: 0
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 162 descriptors. Offset: 82928
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 96552 bytes. Stream Index: 0
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 189 descriptors. Offset: 96552
+[2026-01-20 11:41:08.776] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 269976 bytes. Stream Index: 0
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 528 descriptors. Offset: 269976
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 259992 bytes. Stream Index: 1
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 508 descriptors. Offset: 259992
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 191632 bytes. Stream Index: 0
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 375 descriptors. Offset: 191632
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 231072 bytes. Stream Index: 1
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 452 descriptors. Offset: 231072
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 227224 bytes. Stream Index: 1
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 444 descriptors. Offset: 227224
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 158056 bytes. Stream Index: 1
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 309 descriptors. Offset: 158056
+[2026-01-20 11:41:08.777] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 356096 bytes. Stream Index: 1
+[2026-01-20 11:41:08.778] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 696 descriptors. Offset: 356096
+[2026-01-20 11:41:08.778] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 103896 bytes. Stream Index: 0
+[2026-01-20 11:41:08.778] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 203 descriptors. Offset: 103896
+[2026-01-20 11:41:08.778] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 168800 bytes. Stream Index: 0
+[2026-01-20 11:41:08.778] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 330 descriptors. Offset: 168800
+[2026-01-20 11:41:08.778] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 355608 bytes. Stream Index: 0
+[2026-01-20 11:41:08.778] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 695 descriptors. Offset: 355608
+[2026-01-20 11:41:08.778] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 159552 bytes. Stream Index: 1
+[2026-01-20 11:41:08.779] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 312 descriptors. Offset: 159552
+[2026-01-20 11:41:08.779] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 199608 bytes. Stream Index: 1
+[2026-01-20 11:41:08.779] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 390 descriptors. Offset: 199608
+[2026-01-20 11:41:08.779] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 361296 bytes. Stream Index: 0
+[2026-01-20 11:41:08.779] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 706 descriptors. Offset: 361296
+[2026-01-20 11:41:08.779] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 158184 bytes. Stream Index: 1
+[2026-01-20 11:41:08.779] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 309 descriptors. Offset: 158184
+[2026-01-20 11:41:08.779] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 188576 bytes. Stream Index: 0
+[2026-01-20 11:41:08.779] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 369 descriptors. Offset: 188576
+[2026-01-20 11:41:08.779] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 329112 bytes. Stream Index: 0
+[2026-01-20 11:41:08.780] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 643 descriptors. Offset: 329112
+[2026-01-20 11:41:08.780] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 158784 bytes. Stream Index: 0
+[2026-01-20 11:41:08.780] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 311 descriptors. Offset: 158784
+[2026-01-20 11:41:08.780] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 18064 bytes. Stream Index: 0
+[2026-01-20 11:41:08.780] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 36 descriptors. Offset: 18064
+[2026-01-20 11:41:08.780] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 188272 bytes. Stream Index: 0
+[2026-01-20 11:41:08.780] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 368 descriptors. Offset: 188272
+[2026-01-20 11:41:08.780] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 406656 bytes. Stream Index: 0
+[2026-01-20 11:41:08.780] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 795 descriptors. Offset: 406656
+[2026-01-20 11:41:08.780] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 460336 bytes. Stream Index: 0
+[2026-01-20 11:41:08.781] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 900 descriptors. Offset: 460336
+[2026-01-20 11:41:08.781] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 503472 bytes. Stream Index: 1
+[2026-01-20 11:41:08.781] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 984 descriptors. Offset: 503472
+[2026-01-20 11:41:08.781] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 421824 bytes. Stream Index: 1
+[2026-01-20 11:41:08.782] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 824 descriptors. Offset: 421824
+[2026-01-20 11:41:08.782] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 253656 bytes. Stream Index: 0
+[2026-01-20 11:41:08.782] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 496 descriptors. Offset: 253656
+[2026-01-20 11:41:08.791] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 11:41:08.792] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 1685608 bytes. Stream Index: 1
+[2026-01-20 11:41:08.793] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 3293 descriptors. Offset: 1685608
+[2026-01-20 11:41:08.793] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 994312 bytes. Stream Index: 0
+[2026-01-20 11:41:08.794] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 1943 descriptors. Offset: 994312
+[2026-01-20 11:41:08.794] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 41064 bytes. Stream Index: 1
+[2026-01-20 11:41:08.794] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 81 descriptors. Offset: 41064
+[2026-01-20 11:41:08.794] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 126824 bytes. Stream Index: 0
+[2026-01-20 11:41:08.794] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 248 descriptors. Offset: 126824
+[2026-01-20 11:41:08.794] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 145928 bytes. Stream Index: 0
+[2026-01-20 11:41:08.794] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 286 descriptors. Offset: 145928
+[2026-01-20 11:41:08.794] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 419416 bytes. Stream Index: 0
+[2026-01-20 11:41:08.794] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 820 descriptors. Offset: 419416
+[2026-01-20 11:41:08.794] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 156224 bytes. Stream Index: 0
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 306 descriptors. Offset: 156224
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 130408 bytes. Stream Index: 0
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 255 descriptors. Offset: 130408
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 287160 bytes. Stream Index: 0
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 561 descriptors. Offset: 287160
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 124832 bytes. Stream Index: 0
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 244 descriptors. Offset: 124832
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 82800 bytes. Stream Index: 1
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 162 descriptors. Offset: 82800
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 203392 bytes. Stream Index: 1
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 398 descriptors. Offset: 203392
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 253104 bytes. Stream Index: 1
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 495 descriptors. Offset: 253104
+[2026-01-20 11:41:08.795] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 202200 bytes. Stream Index: 0
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 395 descriptors. Offset: 202200
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 74008 bytes. Stream Index: 1
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 145 descriptors. Offset: 74008
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 25440 bytes. Stream Index: 1
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 50 descriptors. Offset: 25440
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 283504 bytes. Stream Index: 0
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 554 descriptors. Offset: 283504
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 358368 bytes. Stream Index: 0
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 700 descriptors. Offset: 358368
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 120608 bytes. Stream Index: 0
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 236 descriptors. Offset: 120608
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 117400 bytes. Stream Index: 0
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 230 descriptors. Offset: 117400
+[2026-01-20 11:41:08.796] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 352448 bytes. Stream Index: 0
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 689 descriptors. Offset: 352448
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 262176 bytes. Stream Index: 0
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 513 descriptors. Offset: 262176
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 51144 bytes. Stream Index: 0
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 100 descriptors. Offset: 51144
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 318232 bytes. Stream Index: 1
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 622 descriptors. Offset: 318232
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 196544 bytes. Stream Index: 1
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 384 descriptors. Offset: 196544
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 149072 bytes. Stream Index: 1
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 292 descriptors. Offset: 149072
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 30824 bytes. Stream Index: 1
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 61 descriptors. Offset: 30824
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 183336 bytes. Stream Index: 1
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 359 descriptors. Offset: 183336
+[2026-01-20 11:41:08.797] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 84272 bytes. Stream Index: 1
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 165 descriptors. Offset: 84272
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 151088 bytes. Stream Index: 1
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 296 descriptors. Offset: 151088
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 130560 bytes. Stream Index: 1
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 255 descriptors. Offset: 130560
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 50752 bytes. Stream Index: 1
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 100 descriptors. Offset: 50752
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 315008 bytes. Stream Index: 1
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 616 descriptors. Offset: 315008
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 107448 bytes. Stream Index: 1
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 210 descriptors. Offset: 107448
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 117848 bytes. Stream Index: 1
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 231 descriptors. Offset: 117848
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 299248 bytes. Stream Index: 0
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 585 descriptors. Offset: 299248
+[2026-01-20 11:41:08.798] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 156184 bytes. Stream Index: 1
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 306 descriptors. Offset: 156184
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 92768 bytes. Stream Index: 1
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 182 descriptors. Offset: 92768
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 360800 bytes. Stream Index: 1
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 705 descriptors. Offset: 360800
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 268248 bytes. Stream Index: 0
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 524 descriptors. Offset: 268248
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 102512 bytes. Stream Index: 0
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 201 descriptors. Offset: 102512
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 298384 bytes. Stream Index: 0
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 583 descriptors. Offset: 298384
+[2026-01-20 11:41:08.799] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 183816 bytes. Stream Index: 1
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 360 descriptors. Offset: 183816
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 75296 bytes. Stream Index: 0
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 148 descriptors. Offset: 75296
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 167744 bytes. Stream Index: 0
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 328 descriptors. Offset: 167744
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 336272 bytes. Stream Index: 1
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 657 descriptors. Offset: 336272
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 413760 bytes. Stream Index: 0
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 809 descriptors. Offset: 413760
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 73352 bytes. Stream Index: 0
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 144 descriptors. Offset: 73352
+[2026-01-20 11:41:08.800] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 83920 bytes. Stream Index: 1
+[2026-01-20 11:41:08.801] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 164 descriptors. Offset: 83920
+[2026-01-20 11:41:08.810] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 11:41:08.810] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 2293344 bytes. Stream Index: 1
+[2026-01-20 11:41:08.812] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 4480 descriptors. Offset: 2293344
+[2026-01-20 11:41:08.812] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 2336768 bytes. Stream Index: 0
+[2026-01-20 11:41:08.813] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 4564 descriptors. Offset: 2336768
+[2026-01-20 11:41:08.813] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 98936 bytes. Stream Index: 1
+[2026-01-20 11:41:08.813] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 194 descriptors. Offset: 98936
+[2026-01-20 11:41:08.813] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 198256 bytes. Stream Index: 1
+[2026-01-20 11:41:08.813] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 388 descriptors. Offset: 198256
+[2026-01-20 11:41:08.813] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 231056 bytes. Stream Index: 1
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 452 descriptors. Offset: 231056
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 72456 bytes. Stream Index: 1
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 142 descriptors. Offset: 72456
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 120344 bytes. Stream Index: 1
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 236 descriptors. Offset: 120344
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 334920 bytes. Stream Index: 1
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 655 descriptors. Offset: 334920
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 205576 bytes. Stream Index: 1
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 402 descriptors. Offset: 205576
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 156960 bytes. Stream Index: 1
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 307 descriptors. Offset: 156960
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 89936 bytes. Stream Index: 1
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 176 descriptors. Offset: 89936
+[2026-01-20 11:41:08.814] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 260280 bytes. Stream Index: 0
+[2026-01-20 11:41:08.815] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 509 descriptors. Offset: 260280
+[2026-01-20 11:41:08.815] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 180976 bytes. Stream Index: 1
+[2026-01-20 11:41:08.815] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 354 descriptors. Offset: 180976
+[2026-01-20 11:41:08.815] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 465520 bytes. Stream Index: 0
+[2026-01-20 11:41:08.815] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 910 descriptors. Offset: 465520
+[2026-01-20 11:41:08.815] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 78416 bytes. Stream Index: 0
+[2026-01-20 11:41:08.815] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 154 descriptors. Offset: 78416
+[2026-01-20 11:41:08.815] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 319592 bytes. Stream Index: 1
+[2026-01-20 11:41:08.815] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 625 descriptors. Offset: 319592
+[2026-01-20 11:41:08.815] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 271792 bytes. Stream Index: 1
+[2026-01-20 11:41:08.816] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 531 descriptors. Offset: 271792
+[2026-01-20 11:41:08.816] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 128192 bytes. Stream Index: 0
+[2026-01-20 11:41:08.816] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 251 descriptors. Offset: 128192
+[2026-01-20 11:41:08.816] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 399624 bytes. Stream Index: 1
+[2026-01-20 11:41:08.816] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 781 descriptors. Offset: 399624
+[2026-01-20 11:41:08.816] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 286256 bytes. Stream Index: 1
+[2026-01-20 11:41:08.816] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 560 descriptors. Offset: 286256
+[2026-01-20 11:41:08.816] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 144272 bytes. Stream Index: 0
+[2026-01-20 11:41:08.816] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 282 descriptors. Offset: 144272
+[2026-01-20 11:41:08.816] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 280528 bytes. Stream Index: 0
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 548 descriptors. Offset: 280528
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 442352 bytes. Stream Index: 0
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 864 descriptors. Offset: 442352
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 122632 bytes. Stream Index: 0
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 240 descriptors. Offset: 122632
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 426376 bytes. Stream Index: 1
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 833 descriptors. Offset: 426376
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 78008 bytes. Stream Index: 0
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 153 descriptors. Offset: 78008
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 121976 bytes. Stream Index: 0
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 239 descriptors. Offset: 121976
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 181456 bytes. Stream Index: 1
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 355 descriptors. Offset: 181456
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 44728 bytes. Stream Index: 0
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 88 descriptors. Offset: 44728
+[2026-01-20 11:41:08.817] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 243656 bytes. Stream Index: 0
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 476 descriptors. Offset: 243656
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 58192 bytes. Stream Index: 0
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 114 descriptors. Offset: 58192
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 39328 bytes. Stream Index: 0
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 77 descriptors. Offset: 39328
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 268800 bytes. Stream Index: 0
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 525 descriptors. Offset: 268800
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 83776 bytes. Stream Index: 0
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 164 descriptors. Offset: 83776
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 226120 bytes. Stream Index: 1
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 442 descriptors. Offset: 226120
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 194080 bytes. Stream Index: 0
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 380 descriptors. Offset: 194080
+[2026-01-20 11:41:08.818] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 385744 bytes. Stream Index: 0
+[2026-01-20 11:41:08.819] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 754 descriptors. Offset: 385744
+[2026-01-20 11:41:08.819] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 262848 bytes. Stream Index: 1
+[2026-01-20 11:41:08.819] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 514 descriptors. Offset: 262848
+[2026-01-20 11:41:08.819] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 48568 bytes. Stream Index: 0
+[2026-01-20 11:41:08.819] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 95 descriptors. Offset: 48568
+[2026-01-20 11:41:08.826] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000048 (HAILO_CONTROL_OPCODE_GET_HW_CONSTS), len=20, cpu_id=1
+[2026-01-20 11:41:08.826] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 1381312 bytes. Stream Index: 1
+[2026-01-20 11:41:08.827] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 2698 descriptors. Offset: 1381312
+[2026-01-20 11:41:08.827] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 1518152 bytes. Stream Index: 0
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 2966 descriptors. Offset: 1518152
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 183696 bytes. Stream Index: 1
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 359 descriptors. Offset: 183696
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 72 bytes. Stream Index: 0
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 1 descriptors. Offset: 72
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 142040 bytes. Stream Index: 0
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 278 descriptors. Offset: 142040
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 101504 bytes. Stream Index: 0
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 199 descriptors. Offset: 101504
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 58032 bytes. Stream Index: 1
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 114 descriptors. Offset: 58032
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 13888 bytes. Stream Index: 1
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 28 descriptors. Offset: 13888
+[2026-01-20 11:41:08.828] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 349800 bytes. Stream Index: 1
+[2026-01-20 11:41:08.829] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 684 descriptors. Offset: 349800
+[2026-01-20 11:41:08.829] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 502784 bytes. Stream Index: 0
+[2026-01-20 11:41:08.829] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 982 descriptors. Offset: 502784
+[2026-01-20 11:41:08.829] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 35544 bytes. Stream Index: 1
+[2026-01-20 11:41:08.829] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 70 descriptors. Offset: 35544
+[2026-01-20 11:41:08.829] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 556312 bytes. Stream Index: 0
+[2026-01-20 11:41:08.829] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 1087 descriptors. Offset: 556312
+[2026-01-20 11:41:08.829] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 74904 bytes. Stream Index: 1
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 147 descriptors. Offset: 74904
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 170104 bytes. Stream Index: 0
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 333 descriptors. Offset: 170104
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 6592 bytes. Stream Index: 1
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 13 descriptors. Offset: 6592
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 209584 bytes. Stream Index: 1
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 410 descriptors. Offset: 209584
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 343352 bytes. Stream Index: 1
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 671 descriptors. Offset: 343352
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 404024 bytes. Stream Index: 0
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 790 descriptors. Offset: 404024
+[2026-01-20 11:41:08.830] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 317576 bytes. Stream Index: 1
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 621 descriptors. Offset: 317576
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 27552 bytes. Stream Index: 1
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 54 descriptors. Offset: 27552
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 12712 bytes. Stream Index: 1
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 25 descriptors. Offset: 12712
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 72112 bytes. Stream Index: 1
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 141 descriptors. Offset: 72112
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 97600 bytes. Stream Index: 1
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 191 descriptors. Offset: 97600
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 15208 bytes. Stream Index: 0
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 30 descriptors. Offset: 15208
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 145152 bytes. Stream Index: 0
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 284 descriptors. Offset: 145152
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 256920 bytes. Stream Index: 1
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 502 descriptors. Offset: 256920
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 39032 bytes. Stream Index: 0
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 77 descriptors. Offset: 39032
+[2026-01-20 11:41:08.831] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 408336 bytes. Stream Index: 0
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 798 descriptors. Offset: 408336
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 41248 bytes. Stream Index: 0
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 81 descriptors. Offset: 41248
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 345864 bytes. Stream Index: 0
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 676 descriptors. Offset: 345864
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 98584 bytes. Stream Index: 1
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 193 descriptors. Offset: 98584
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 15280 bytes. Stream Index: 1
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 30 descriptors. Offset: 15280
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 22464 bytes. Stream Index: 0
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 44 descriptors. Offset: 22464
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 97456 bytes. Stream Index: 1
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 191 descriptors. Offset: 97456
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 36120 bytes. Stream Index: 0
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 71 descriptors. Offset: 36120
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 131568 bytes. Stream Index: 0
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 257 descriptors. Offset: 131568
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 110624 bytes. Stream Index: 1
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 217 descriptors. Offset: 110624
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 62840 bytes. Stream Index: 0
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:0. Programming 123 descriptors. Offset: 62840
+[2026-01-20 11:41:08.832] [291973] [HailoRT] [info] [context_switch_actions.cpp:251] [write_to_config_buffer] WriteDataCcwAction: Writing Config Data. Total Size: 119696 bytes. Stream Index: 1
+[2026-01-20 11:41:08.833] [291973] [HailoRT] [info] [config_buffer.cpp:171] [program_descriptors] ConfigBuffer::program_descriptors: Channel 0:1. Programming 234 descriptors. Offset: 119696
+[2026-01-20 11:41:08.833] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000020 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_NETWORK_GROUP_HEADER), len=56, cpu_id=1
+[2026-01-20 11:41:08.833] [291973] [HailoRT] [info] [control.cpp:2406] [context_switch_set_network_group_header] Control::context_switch_set_network_group_header called successfully
+[2026-01-20 11:41:08.833] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=102, cpu_id=1
+[2026-01-20 11:41:08.833] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=627, cpu_id=1
+[2026-01-20 11:41:08.833] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=1113, cpu_id=1
+[2026-01-20 11:41:08.834] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=1496, cpu_id=1
+[2026-01-20 11:41:08.835] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=924, cpu_id=1
+[2026-01-20 11:41:08.835] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=1471, cpu_id=1
+[2026-01-20 11:41:08.836] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=483, cpu_id=1
+[2026-01-20 11:41:08.836] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=1463, cpu_id=1
+[2026-01-20 11:41:08.837] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=357, cpu_id=1
+[2026-01-20 11:41:08.837] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=1499, cpu_id=1
+[2026-01-20 11:41:08.838] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000021 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_SET_CONTEXT_INFO), len=255, cpu_id=1
+[2026-01-20 11:41:08.838] [291973] [HailoRT] [info] [control.cpp:2504] [context_switch_set_context_info] Control::context_switch_set_context_info sent 11 chunks. Total size: 9361 bytes. Types: Prelim=1, Dyn=8, Batch=1, Act=1
+[2026-01-20 11:41:08.838] [291973] [HailoRT] [info] [device_internal.cpp:57] [configure] Configuring HEF took 97.115171 milliseconds
+[2026-01-20 11:41:08.840] [291973] [HailoRT] [info] [vdevice.cpp:780] [configure] Configuring HEF on VDevice took 98.83405 milliseconds
+[2026-01-20 11:41:08.840] [291973] [HailoRT] [info] [edge_elements.cpp:52] [create] Created (HwWriteEl3resnet152_v1/input_layer1 | hw_frame_size: 150528)
+[2026-01-20 11:41:08.840] [291973] [HailoRT] [info] [vstream.cpp:754] [InputVStreamImpl] Creating resnet152_v1/input_layer1...
+[2026-01-20 11:41:08.840] [291973] [HailoRT] [info] [vstream_builder.cpp:102] [create_inputs] Input pipeline 'resnet152_v1/input_layer1': (HwWriteEl3resnet152_v1/input_layer1 | hw_frame_size: 150528) >> HW
+[2026-01-20 11:41:08.840] [291973] [HailoRT] [info] [edge_elements.cpp:287] [create] Created (HwReadEl0resnet152_v1/fc1 | hw_frame_size: 1000)
+[2026-01-20 11:41:08.840] [291973] [HailoRT] [info] [queue_elements.cpp:800] [create] Created (UserBuffQEl0resnet152_v1/fc1 | timeout: 10s)
+[2026-01-20 11:41:08.840] [291973] [HailoRT] [info] [vstream.cpp:1114] [OutputVStreamImpl] Creating resnet152_v1/fc1...
+[2026-01-20 11:41:08.840] [291973] [HailoRT] [info] [vstream_builder.cpp:220] [create_outputs] Output pipeline 'resnet152_v1/fc1': HW >> (HwReadEl0resnet152_v1/fc1 | hw_frame_size: 1000) >> (UserBuffQEl0resnet152_v1/fc1 | timeout: 10s)
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [vdma_config_manager.cpp:25] [set_core_op] VdmaConfigManager::set_core_op: is_batch_switch=false, batch_size=1
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [vdma_config_manager.cpp:73] [switch_core_op] VdmaConfigManager starting switch_core_op...
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [resource_manager.cpp:674] [enable_state_machine] ResourcesManager enabling state machine for core-op index 0
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [control.cpp:2775] [enable_core_op] Control::enable_core_op called. Enabling network_group_index 0. Dynamic batch size: 1, Batch count: 0
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000025 (HAILO_CONTROL_OPCODE_CHANGE_CONTEXT_SWITCH_STATUS), len=42, cpu_id=1
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [vdma_config_manager.cpp:97] [switch_core_op] VdmaConfigManager finished switching core-op
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [scheduler.cpp:131] [switch_core_op] Scheduler switched core-op from IDLE to resnet152_v1
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=0, buffers_count=1
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff859b5000, size=150528
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=0, buffers_count=1
+[2026-01-20 11:41:08.850] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff97726000, size=1000
+[2026-01-20 11:41:08.916] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=294, buffers_count=1
+[2026-01-20 11:41:08.916] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff85990000, size=150528
+[2026-01-20 11:41:08.916] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=2, buffers_count=1
+[2026-01-20 11:41:08.916] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff97725000, size=1000
+[2026-01-20 11:41:08.974] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=588, buffers_count=1
+[2026-01-20 11:41:08.974] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff8596b000, size=150528
+[2026-01-20 11:41:08.975] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=4, buffers_count=1
+[2026-01-20 11:41:08.975] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff97724000, size=1000
+[2026-01-20 11:41:09.032] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=882, buffers_count=1
+[2026-01-20 11:41:09.032] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff85946000, size=150528
+[2026-01-20 11:41:09.032] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=6, buffers_count=1
+[2026-01-20 11:41:09.032] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff97723000, size=1000
+[2026-01-20 11:41:09.089] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=1176, buffers_count=1
+[2026-01-20 11:41:09.090] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff85921000, size=150528
+[2026-01-20 11:41:09.090] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=8, buffers_count=1
+[2026-01-20 11:41:09.090] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff97722000, size=1000
+[2026-01-20 11:41:09.146] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [H2D]: channel=0.2, desc_handle=4096, starting_desc=1470, buffers_count=1
+[2026-01-20 11:41:09.146] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff858fc000, size=150528
+[2026-01-20 11:41:09.146] [291977] [HailoRT] [info] [hailort_driver.cpp:686] [launch_transfer] Launching transfer [D2H]: channel=0.16, desc_handle=8192, starting_desc=10, buffers_count=1
+[2026-01-20 11:41:09.146] [291977] [HailoRT] [info] [hailort_driver.cpp:689] [launch_transfer]   Buffer 0: addr_or_fd=0xffff97721000, size=1000
+[2026-01-20 11:41:09.197] [291980] [HailoRT] [info] [queue_elements.cpp:855] [run_in_thread] Shutdown event was signaled in dequeue of UserBuffQEl0resnet152_v1/fc1!
+[2026-01-20 11:41:09.197] [291980] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element UserBuffQEl0resnet152_v1/fc1 is not running anymore, exiting..
+[2026-01-20 11:41:09.197] [291973] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element UserBuffQEl0resnet152_v1/fc1 has 0 frames in his Queue on destruction
+[2026-01-20 11:41:09.198] [291973] [HailoRT] [info] [vdma_config_manager.cpp:73] [switch_core_op] VdmaConfigManager starting switch_core_op...
+[2026-01-20 11:41:09.198] [291973] [HailoRT] [info] [control.cpp:2783] [reset_context_switch_state_machine] Control::reset_context_switch_state_machine called. Resetting context switch state.
+[2026-01-20 11:41:09.198] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000025 (HAILO_CONTROL_OPCODE_CHANGE_CONTEXT_SWITCH_STATUS), len=42, cpu_id=1
+[2026-01-20 11:41:09.198] [291973] [HailoRT] [info] [vdma_config_manager.cpp:97] [switch_core_op] VdmaConfigManager finished switching core-op
+[2026-01-20 11:41:09.199] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff88769000, size=4891648, direction=0
+[2026-01-20 11:41:09.200] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff88379000, size=4127744, direction=0
+[2026-01-20 11:41:09.202] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff87e6d000, size=5291008, direction=0
+[2026-01-20 11:41:09.204] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff878ca000, size=5906944, direction=0
+[2026-01-20 11:41:09.206] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff87326000, size=5911040, direction=0
+[2026-01-20 11:41:09.207] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff86de9000, size=5492224, direction=0
+[2026-01-20 11:41:09.208] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff86846000, size=5906944, direction=0
+[2026-01-20 11:41:09.210] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff86222000, size=6436864, direction=0
+[2026-01-20 11:41:09.211] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff88c14000, size=503808, direction=2
+[2026-01-20 11:41:09.212] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff85da1000, size=4720640, direction=0
+[2026-01-20 11:41:09.213] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff859da000, size=3958784, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9772e000, size=4096, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9772d000, size=4096, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9772c000, size=4096, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9772b000, size=4096, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9772a000, size=4096, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff97729000, size=4096, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff97728000, size=4096, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff97727000, size=4096, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff97726000, size=1000, direction=1
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff97725000, size=1000, direction=1
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff97724000, size=1000, direction=1
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff97723000, size=1000, direction=1
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff97722000, size=1000, direction=1
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff97721000, size=1000, direction=1
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff97720000, size=1000, direction=1
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff9771f000, size=1000, direction=1
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff859b5000, size=150528, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff85990000, size=150528, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff8596b000, size=150528, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff85946000, size=150528, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff85921000, size=150528, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff858fc000, size=150528, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff858d7000, size=150528, direction=0
+[2026-01-20 11:41:09.214] [291973] [HailoRT] [info] [hailort_driver.cpp:601] [vdma_buffer_unmap] Unmapping buffer: address=0xffff858b2000, size=150528, direction=0
+[2026-01-20 11:41:09.215] [291973] [HailoRT] [info] [control.cpp:2783] [reset_context_switch_state_machine] Control::reset_context_switch_state_machine called. Resetting context switch state.
+[2026-01-20 11:41:09.215] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000025 (HAILO_CONTROL_OPCODE_CHANGE_CONTEXT_SWITCH_STATUS), len=42, cpu_id=1
+[2026-01-20 11:41:09.215] [291973] [HailoRT] [info] [hailort_driver.cpp:476] [fw_control] Sending FW Control: opcode=0x00000047 (HAILO_CONTROL_OPCODE_CONTEXT_SWITCH_CLEAR_CONFIGURED_APPS), len=20, cpu_id=1

@@ -18,7 +18,7 @@
     },
     {
       "id": 2,
-      "hef_path": "/home/taespberry/WORKSPACE/models/mobilenetv2.hef",
+      "hef_path": "/home/taespberry/WORKSPACE/models/vit_base.hef",
       "image_path": "/home/taespberry/WORKSPACE/images/_images_2.png",
       "labels_path": "/home/taespberry/WORKSPACE/labels/imagenet_labels.json",
       "frame_count": 1000,
