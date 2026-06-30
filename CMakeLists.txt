@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Find HailoRT
-find_package(HailoRT 4.23.0 EXACT REQUIRED)
+set(HAILORT_REQUIRED_VERSION 4.24.0)
+find_package(HailoRT ${HAILORT_REQUIRED_VERSION} EXACT REQUIRED)
 
 # Find OpenCV
 find_package(OpenCV REQUIRED)
@@ -57,13 +58,13 @@ target_include_directories(multi_process
 # Link libraries
 target_link_libraries(inference_driver
     PRIVATE
-        hailort
+        HailoRT::libhailort
         ${OpenCV_LIBS}
 )
 
 target_link_libraries(multi_process
     PRIVATE
-        hailort
+        HailoRT::libhailort
         ${OpenCV_LIBS}
 )
 

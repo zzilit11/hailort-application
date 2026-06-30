@@ -8,7 +8,7 @@ cd ./build
 make
 
 # ------------- Configuration -------------
-executable="/home/taespberry/WORKSPACE/hailort_examples/build/inference_driver"
+executable="/home/taespberry/WORKSPACE/hailort-application/build/inference_driver"
 model="/home/taespberry/WORKSPACE/models/resnet50_v1.hef"
 image_dir="/home/taespberry/WORKSPACE/images"
 class_labels="/home/taespberry/WORKSPACE/labels/imagenet_labels.json"
@@ -40,8 +40,10 @@ case "$MODE" in
         "$executable" "$model" "$image_dir" "$class_labels"
         ;;
     log)
-        LD_PRELOAD=/usr/local/lib/libloghailort.so LD_DEBUG=libs \
-        "$executable" "$model" "$image_dir" "$class_labels" 2>&1 | grep -E 'hailort|loghailort'
+        export HAILORT_CONSOLE_LOGGER_LEVEL=info
+        export HAILORT_LOGGER_PATH="../hailort-logs"
+        mkdir -p "$HAILORT_LOGGER_PATH"
+        "$executable" "$model" "$image_dir" "$class_labels"
         ;;
     *)
         echo "Invalid mode: $MODE"

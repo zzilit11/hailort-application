@@ -1,6 +1,6 @@
 Starting Infinite Inference on /home/taespberry/WORKSPACE/models/vit_base.hef...
-[Output Thread 0] frame=0
 [Input Thread 0] frame=0
+[Output Thread 0] frame=0
 [Input Thread 0] frame=1
 [Input Thread 0] frame=2
 [Input Thread 0] frame=3
@@ -1319,10 +1319,10 @@ Starting Infinite Inference on /home/taespberry/WORKSPACE/models/vit_base.hef...
 [Output Thread 0] frame=646
 [Output Thread 0] frame=647
 [Output Thread 0] frame=648
-[Output Thread 0] frame=649
-[Output Thread 0] frame=650
 [Input Thread 0] frame=671
+[Output Thread 0] frame=649
 [Input Thread 0] frame=672
+[Output Thread 0] frame=650
 [Input Thread 0] frame=673
 [Input Thread 0] frame=674
 [Input Thread 0] frame=675
@@ -1620,8 +1620,8 @@ Starting Infinite Inference on /home/taespberry/WORKSPACE/models/vit_base.hef...
 [Output Thread 0] frame=797
 [Output Thread 0] frame=798
 [Output Thread 0] frame=799
-[Output Thread 0] frame=800
 [Input Thread 0] frame=821
+[Output Thread 0] frame=800
 [Input Thread 0] frame=822
 [Input Thread 0] frame=823
 [Input Thread 0] frame=824

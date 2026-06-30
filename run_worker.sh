@@ -21,15 +21,18 @@ if [ ! -f "$EXECUTABLE" ]; then
 fi
 
 # 실행 커맨드 구성
-CMD="$EXECUTABLE \"$HEF\" \"$IMAGE\" \"$LABEL\" $FRAMES $BATCH $PRIORITY $TIMEOUT $THRESHOLD"
+CMD=("$EXECUTABLE" "$HEF" "$IMAGE" "$LABEL" "$FRAMES" "$BATCH" "$PRIORITY" "$TIMEOUT" "$THRESHOLD")
 
 case "$MODE" in
     default)
-        eval "$CMD" > "$LOG_FILE" 2>&1 &
+        "${CMD[@]}" > "$LOG_FILE" 2>&1 &
         ;;
     log)
-        export LD_PRELOAD=/usr/local/lib/libloghailort.so
-        eval "$CMD" > "$LOG_FILE" 2>&1 &
+        HAILORT_LOG_DIR="${LOG_FILE%.*}_hailort"
+        mkdir -p "$HAILORT_LOG_DIR"
+        export HAILORT_CONSOLE_LOGGER_LEVEL=info
+        export HAILORT_LOGGER_PATH="$HAILORT_LOG_DIR"
+        "${CMD[@]}" > "$LOG_FILE" 2>&1 &
         ;;
     *)
         echo "Unknown mode: $MODE"
