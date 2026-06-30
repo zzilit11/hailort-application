@@ -12,15 +12,18 @@
 
 #include "util.hpp"
 
+#include <cmath>
+#include <iostream>
+#include <stdexcept>
+
 namespace fs = std::filesystem;
 
-cv::Mat util::preprocess_image_resnet_uint8(const cv::Mat &image, float qp_scale, float qp_zp)
-{
-    // Fix height and width
-    int target_height = 224;
-    int target_width = 224;
+namespace {
+constexpr int RESNET_INPUT_HEIGHT = 224;
+constexpr int RESNET_INPUT_WIDTH = 224;
 
-    // Ensure 3-channel BGR
+cv::Mat ensure_bgr_3ch(const cv::Mat &image)
+{
     cv::Mat img_bgr;
     if (image.channels() == 3) {
         img_bgr = image;
@@ -31,25 +34,44 @@ cv::Mat util::preprocess_image_resnet_uint8(const cv::Mat &image, float qp_scale
     } else {
         throw std::runtime_error("Unsupported number of channels in input image");
     }
+    return img_bgr;
+}
 
-    int h = img_bgr.rows;
-    int w = img_bgr.cols;
+cv::Mat resize_or_center_crop_224(const cv::Mat &img_bgr)
+{
+    if ((img_bgr.rows == RESNET_INPUT_HEIGHT) && (img_bgr.cols == RESNET_INPUT_WIDTH)) {
+        return img_bgr.clone();
+    }
 
-    // 1. Scale shorter side to 256
-    float scale = 256.0f / static_cast<float>(std::min(h, w));
-    int new_h = static_cast<int>(std::round(h * scale));
-    int new_w = static_cast<int>(std::round(w * scale));
+    const float scale = 256.0f / static_cast<float>(std::min(img_bgr.rows, img_bgr.cols));
+    const int new_h = static_cast<int>(std::round(img_bgr.rows * scale));
+    const int new_w = static_cast<int>(std::round(img_bgr.cols * scale));
 
     cv::Mat resized;
     cv::resize(img_bgr, resized, cv::Size(new_w, new_h), 0, 0, cv::INTER_LINEAR);
 
-    // 2. Center crop
-    int x = (new_w - target_width) / 2;
-    int y = (new_h - target_height) / 2;
-    cv::Rect crop(x, y, target_width, target_height);
-    cv::Mat cropped = resized(crop); // CV_8UC3
+    const int x = (new_w - RESNET_INPUT_WIDTH) / 2;
+    const int y = (new_h - RESNET_INPUT_HEIGHT) / 2;
+    return resized(cv::Rect(x, y, RESNET_INPUT_WIDTH, RESNET_INPUT_HEIGHT)).clone();
+}
 
-    // 3. Convert to float32 and subtract ImageNet Caffe means
+bool is_raw_uint8_input(float qp_scale, float qp_zp)
+{
+    return (std::abs(qp_scale - 1.0f) < 1e-3f) && (std::abs(qp_zp) < 1e-3f);
+}
+} // namespace
+
+cv::Mat util::preprocess_image_resnet_uint8(const cv::Mat &image, float qp_scale, float qp_zp)
+{
+    cv::Mat img_bgr = ensure_bgr_3ch(image);
+    cv::Mat cropped = resize_or_center_crop_224(img_bgr);
+
+    if (is_raw_uint8_input(qp_scale, qp_zp)) {
+        cv::Mat rgb;
+        cv::cvtColor(cropped, rgb, cv::COLOR_BGR2RGB);
+        return rgb;
+    }
+
     cv::Mat float_image;
     cropped.convertTo(float_image, CV_32FC3, 1.0);
 
@@ -59,24 +81,22 @@ cv::Mat util::preprocess_image_resnet_uint8(const cv::Mat &image, float qp_scale
     for (int c = 0; c < 3; ++c) {
         channels[c] = channels[c] - mean[c];
     }
-    cv::merge(channels, float_image); // still CV_32FC3
+    cv::merge(channels, float_image);
 
-    // 4. Quantize float_image -> uint8 using Hailo qp_scale / qp_zp
-    cv::Mat quantized(target_height, target_width, CV_8UC3);
-    float    *fptr = reinterpret_cast<float*>(float_image.data);
-    uint8_t  *qptr = quantized.data;
+    cv::Mat quantized(RESNET_INPUT_HEIGHT, RESNET_INPUT_WIDTH, CV_8UC3);
+    float *fptr = reinterpret_cast<float*>(float_image.data);
+    uint8_t *qptr = quantized.data;
 
-    size_t total_elements = static_cast<size_t>(target_height) *
-                            static_cast<size_t>(target_width) * 3;
+    const size_t total_elements = static_cast<size_t>(RESNET_INPUT_HEIGHT) *
+                                  static_cast<size_t>(RESNET_INPUT_WIDTH) * 3;
 
     for (size_t i = 0; i < total_elements; ++i) {
-        // Same formula as your TFLite path, but using Hailo scale/zp
         int32_t q = static_cast<int32_t>(std::round(fptr[i] / qp_scale) + qp_zp);
         q = std::max(0, std::min(255, q));
         qptr[i] = static_cast<uint8_t>(q);
     }
 
-    return quantized; // CV_8UC3, quantized, ready to memcpy into Hailo input buffer
+    return quantized;
 }
 
 // Helper: collect image paths
@@ -144,38 +164,46 @@ std::vector<std::string> util::load_labels_jsoncpp(const std::string &json_path)
     return labels;
 }
 
-void util::print_topK(const uint8_t *logits, size_t num_classes, std::vector<std::string> labels, size_t k)
+void util::print_topK(const float *scores, size_t num_classes, const std::vector<std::string> &labels, size_t k)
 {
-    // Find top 3 indices
-    if(k > num_classes){
+    if (k > num_classes) {
         std::cerr << "Error K (" << k << ") is larger than the number of classes (" << num_classes << ")" << std::endl;
+        return;
     }
 
-    if (num_classes != 1000){
+    if (num_classes != 1000) {
         std::cout << "Warning: expected 1000 classes, got "
-                << num_classes << std::endl;
+                  << num_classes << std::endl;
     }
+
     std::vector<int> indices(num_classes);
     std::iota(indices.begin(), indices.end(), 0);
 
     std::partial_sort(indices.begin(), indices.begin() + k, indices.end(),
-        [&](int a, int b){
-            return logits[a] > logits[b]; // descending
+        [&](int a, int b) {
+            return scores[a] > scores[b];
         });
 
     std::cout << "Top " << k << " predictions:" << std::endl;
-    for (size_t i = 0; i < k; ++i){
+    for (size_t i = 0; i < k; ++i) {
         int idx = indices[i];
-        float logit = logits[idx] / 256.0;
-
         std::string label = (idx < static_cast<int>(labels.size()))
                             ? labels[idx]
                             : std::string("<unknown>");
 
         std::cout << "  #" << (i + 1)
-                << " idx=" << idx
-                << " score=" << logit
-                << " label=\"" << label << "\""
-                << std::endl;
+                  << " idx=" << idx
+                  << " score=" << scores[idx]
+                  << " label=\"" << label << "\""
+                  << std::endl;
     }
+}
+
+void util::print_topK(const uint8_t *logits, size_t num_classes, const std::vector<std::string> &labels, size_t k)
+{
+    std::vector<float> scores(num_classes);
+    for (size_t i = 0; i < num_classes; ++i) {
+        scores[i] = static_cast<float>(logits[i]) / 256.0f;
+    }
+    print_topK(scores.data(), scores.size(), labels, k);
 }

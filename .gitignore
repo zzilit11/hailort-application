@@ -4,3 +4,4 @@ multi_process
 link_libs.md
 build/*
 logs/*
+trace*

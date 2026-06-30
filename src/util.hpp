@@ -28,7 +28,8 @@ namespace util{
 
     std::vector<std::string> load_labels_jsoncpp(const std::string &json_path);
 
-    void print_topK(const uint8_t *logits, size_t length, std::vector<std::string>, size_t k);
+    void print_topK(const float *scores, size_t length, const std::vector<std::string> &labels, size_t k);
+    void print_topK(const uint8_t *logits, size_t length, const std::vector<std::string> &labels, size_t k);
 } // namespace util
 
 

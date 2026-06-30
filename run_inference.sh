@@ -2,7 +2,7 @@
 
 # ------------- Configuration -------------
 executable="/home/taespberry/WORKSPACE/hailort-application/build/inference_driver"
-model="/home/taespberry/WORKSPACE/models/resnet50_v1.hef"
+model="/home/taespberry/WORKSPACE/official_models/resnet_v1_50.hef"
 #model="/home/taespberry/WORKSPACE/official_models/resnet_v1_50.hef"
 #model="/home/taespberry/WORKSPACE/official_models/vit_base.hef"
 image_dir="/home/taespberry/WORKSPACE/images"

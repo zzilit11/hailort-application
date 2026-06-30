@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
     }
     
     Expected<std::map<std::string, hailo_vstream_params_t>> output_vstream_params = 
-        network_group->make_output_vstream_params({}, HAILO_FORMAT_TYPE_AUTO, 
+        network_group->make_output_vstream_params({}, HAILO_FORMAT_TYPE_FLOAT32,
             HAILO_DEFAULT_VSTREAM_TIMEOUT_MS, HAILO_DEFAULT_VSTREAM_QUEUE_SIZE);
     
     if(!output_vstream_params) {
@@ -128,17 +128,23 @@ int main(int argc, char *argv[]) {
         MemoryView(input_buffers[input_vstream_name].data(), input_buffers[input_vstream_name].size()));
 
     // Output
-    std::map<std::string, std::vector<uint8_t>> output_buffers;
+    std::map<std::string, std::vector<float>> output_buffers;
     std::map<std::string, MemoryView> output_views;
 
     auto &output_vstream = infer_vstream->get_output_vstreams().front().get();
     std::string output_vstream_name = output_vstream.name();
     size_t output_frame_size = output_vstream.get_frame_size();
+    if (0 != (output_frame_size % sizeof(float))) {
+        std::cerr << "Output frame size is not aligned to float32 elements" << std::endl;
+        return HAILO_INTERNAL_FAILURE;
+    }
+    size_t output_elements = output_frame_size / sizeof(float);
     std::cout << "Output vstream \"" << output_vstream_name
-              << "\" frame size: " << output_frame_size << " bytes" << std::endl;
-    output_buffers[output_vstream_name] = std::vector<uint8_t>(output_frame_size, 0);
+              << "\" frame size: " << output_frame_size << " bytes"
+              << " (" << output_elements << " float32 values)" << std::endl;
+    output_buffers[output_vstream_name] = std::vector<float>(output_elements, 0.0f);
     output_views.emplace(output_vstream_name,
-        MemoryView(output_buffers[output_vstream_name].data(), output_buffers[output_vstream_name].size()));
+        MemoryView(output_buffers[output_vstream_name].data(), output_frame_size));
 
     /* Starting inference */
     // variables for quantization
@@ -183,13 +189,13 @@ int main(int argc, char *argv[]) {
         auto &output = output_buffers[output_vstream_name];
 
         size_t num_classes = output.size();
-        const uint8_t *logits = (output.data());
+        const float *scores = output.data();
 
         if (num_classes == 0) {
             std::cerr << "Output buffer size is zero." << std::endl;
         } else {
             // Print top-3 classes
-            util::print_topK(logits, num_classes, labels, 3);
+            util::print_topK(scores, num_classes, labels, 3);
         }    
     }
 

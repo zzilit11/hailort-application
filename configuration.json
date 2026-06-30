@@ -6,7 +6,7 @@
   "jobs": [
     {
       "id": 1,
-      "hef_path": "/home/taespberry/WORKSPACE/models/resnet50_v1.hef",
+      "hef_path": "/home/taespberry/WORKSPACE/official_models/resnet_v1_50.hef",
       "image_path": "/home/taespberry/WORKSPACE/images/_images_1.png",
       "labels_path": "/home/taespberry/WORKSPACE/labels/imagenet_labels.json",
       "frame_count": 200,
