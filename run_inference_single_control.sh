@@ -16,6 +16,7 @@ readonly RESULT_TOP_K="${RESULT_TOP_K:-3}"
 readonly RESULT_LOG_EVERY="${RESULT_LOG_EVERY:-10}"
 readonly RUN_TIMEOUT_SECONDS="${RUN_TIMEOUT_SECONDS:-300}"
 readonly ENABLE_VCTX_TRACE="${ENABLE_VCTX_TRACE:-1}"
+readonly VCTX_TRACE_PREAUTHORIZED="${VCTX_TRACE_PREAUTHORIZED:-0}"
 readonly TRACE_HELPER="${TRACE_HELPER:-${SCRIPT_DIR}/../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh}"
 readonly RUN_ROOT="${RUN_ROOT:-${SCRIPT_DIR}/logs}"
 readonly RUN_ID="$(date +'%Y%m%d-%H%M%S')-$$"
@@ -26,6 +27,12 @@ readonly RESULTS_LOG="${RUN_DIR}/inference-results.log"
 readonly SUMMARY_LOG="${RUN_DIR}/summary.txt"
 
 trace_pid=""
+
+if (( EUID == 0 )); then
+    echo "ERROR: do not run this inference script with sudo/root." >&2
+    echo "Run it as the normal user; the VCTX trace helper elevates only sysfs/dmesg access." >&2
+    exit 1
+fi
 
 stop_trace()
 {
@@ -98,6 +105,10 @@ require_nonnegative_integer "SCHEDULER_THRESHOLD" "${SCHEDULER_THRESHOLD}"
 require_positive_integer "RESULT_TOP_K" "${RESULT_TOP_K}"
 require_nonnegative_integer "RESULT_LOG_EVERY" "${RESULT_LOG_EVERY}"
 require_positive_integer "RUN_TIMEOUT_SECONDS" "${RUN_TIMEOUT_SECONDS}"
+if [[ "${VCTX_TRACE_PREAUTHORIZED}" != "0" && "${VCTX_TRACE_PREAUTHORIZED}" != "1" ]]; then
+    echo "ERROR: VCTX_TRACE_PREAUTHORIZED must be 0 or 1." >&2
+    exit 1
+fi
 command -v timeout >/dev/null 2>&1 || { echo "ERROR: GNU timeout is required." >&2; exit 1; }
 
 mkdir -p "${RUN_DIR}"
@@ -111,14 +122,17 @@ mkdir -p "${RUN_DIR}"
     echo "result_log_every=${RESULT_LOG_EVERY}"
     echo "multi_process_service=0"
     echo "vctx_trace=${ENABLE_VCTX_TRACE}"
+    echo "vctx_trace_preauthorized=${VCTX_TRACE_PREAUTHORIZED}"
 } | tee "${RUN_DIR}/configuration.txt"
 
 if [[ "${ENABLE_VCTX_TRACE}" == "1" ]]; then
     require_file "vctx trace helper" "${TRACE_HELPER}"
     [[ -x "${TRACE_HELPER}" ]] || { echo "ERROR: trace helper is not executable: ${TRACE_HELPER}" >&2; exit 1; }
     command -v setsid >/dev/null 2>&1 || { echo "ERROR: setsid is required." >&2; exit 1; }
-    sudo -v
-    setsid "${TRACE_HELPER}" >"${TRACE_LOG}" 2>&1 &
+    if [[ "${VCTX_TRACE_PREAUTHORIZED}" != "1" ]]; then
+        "${TRACE_HELPER}" --authorize
+    fi
+    setsid "${TRACE_HELPER}" --follow >"${TRACE_LOG}" 2>&1 &
     trace_pid=$!
     sleep 0.5
     if ! kill -0 "${trace_pid}" 2>/dev/null; then

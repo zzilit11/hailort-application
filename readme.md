@@ -25,6 +25,12 @@ scheduler=ROUND_ROBIN (process-local)
 ./run_inference_multi.sh
 ```
 
+전체 script를 `sudo`로 실행하지 않는다. Worker와 log directory는 일반 사용자
+소유로 유지하고, script가 foreground에서 trace helper를 호출할 때 sudo password를
+한 번 입력한다. Helper는 `vctx_trace` sysfs write와 제한된 `dmesg` read만
+승격한다. `/dev/hailo*` open 자체가 거부된다면 root로 worker를 실행하지 말고
+device node의 udev/group 권한을 수정해야 한다.
+
 script는 다음 순서로 동작한다.
 
 1. KMD `vctx_trace`를 활성화하고 `dmesg` 수집을 시작한다.
@@ -32,6 +38,35 @@ script는 다음 순서로 동작한다.
 3. 각 worker가 독립적으로 VDevice, HEF, network group, VStream을 구성한다.
 4. 두 worker의 `ready.A`, `ready.B`를 확인한 후 공통 start barrier를 해제한다.
 5. 두 process의 종료 코드, 추론 시간 중첩 및 KMD VCTX 개수를 검사한다.
+
+Matrix 시험도 일반 사용자로 실행한다.
+
+```bash
+./run_vctx_experiment_matrix.sh
+```
+
+호출 관계와 권한 경계는 다음과 같다.
+
+```text
+run_vctx_experiment_matrix.sh        normal user, sudo 사전 인증 1회
+  +-- run_inference_multi.sh         normal user
+  |     +-- hailo_vctx_trace.sh      sysfs/dmesg 명령만 제한적 sudo
+  |     +-- multi_process A/B        normal user
+  +-- run_inference_single_control.sh
+        +-- hailo_vctx_trace.sh      sysfs/dmesg 명령만 제한적 sudo
+        +-- multi_process            normal user
+```
+
+Trace helper를 단독으로 사용할 때는 아래처럼 실행한다.
+
+```bash
+# Terminal에서 인증 후 바로 trace
+../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh
+
+# Orchestrator에서 foreground 인증과 background follow를 분리
+../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh --authorize
+../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh --follow
+```
 
 기본 시험은 두 process에서 동일한 ResNet50 HEF와 입력 이미지를 각각 200 frame
 실행한다. 경로 또는 frame 수는 환경 변수로 변경할 수 있다.
@@ -132,11 +167,15 @@ softmax Top1이 `1.000000000`이고 나머지가 0인 frame은
 시간 중첩은 두 process가 동시에 실행 중이었다는 userspace 증거이며, 실제 transfer
 전환은 `dmesg-vctx.log`의 `vctx-trace`와 `vctx-fw` 순서를 함께 확인해야 한다.
 
-수정된 `hailo_pci` module이 아직 `vctx_trace` parameter를 제공하지 않거나 sudo를
-사용하지 않을 때만 trace를 끌 수 있다. 이 경우 VCTX 개수 조건은 검사하지 않는다.
+수정된 `hailo_pci` module이 아직 `vctx_trace` parameter를 제공하지 않거나
+trace 없이 추론만 실행하려면 trace를 끌 수 있다. 이 경우 sudo를 전혀
+사용하지 않으며 VCTX 개수 조건은 검사하지 않는다.
 
 ```bash
 ENABLE_VCTX_TRACE=0 ./run_inference_multi.sh
+
+# Matrix 전체에서 trace 비활성화
+ENABLE_VCTX_TRACE=0 ./run_vctx_experiment_matrix.sh
 ```
 
 ## Single-worker compatibility

@@ -5,14 +5,22 @@ set -Eeuo pipefail
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly DUAL_RUNNER="${DUAL_RUNNER:-${SCRIPT_DIR}/run_inference_multi.sh}"
 readonly SINGLE_RUNNER="${SINGLE_RUNNER:-${SCRIPT_DIR}/run_inference_single_control.sh}"
+readonly TRACE_HELPER="${TRACE_HELPER:-${SCRIPT_DIR}/../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh}"
 readonly MATRIX_ROOT="${MATRIX_ROOT:-${SCRIPT_DIR}/logs}"
 readonly MATRIX_ID="$(date +'%Y%m%d-%H%M%S')-$$"
 readonly MATRIX_DIR="${MATRIX_ROOT}/vctx-matrix-${MATRIX_ID}"
 readonly RUN_LONG_MULTI="${RUN_LONG_MULTI:-1}"
 readonly CASE_RUN_TIMEOUT_SECONDS="${CASE_RUN_TIMEOUT_SECONDS:-90}"
+readonly ENABLE_VCTX_TRACE="${ENABLE_VCTX_TRACE:-1}"
 
 declare -a case_names=()
 declare -a case_statuses=()
+
+if (( EUID == 0 )); then
+    echo "ERROR: do not run the experiment matrix with sudo/root." >&2
+    echo "Run it as the normal user; only the trace helper uses limited sudo commands." >&2
+    exit 1
+fi
 
 run_case()
 {
@@ -37,6 +45,10 @@ if [[ "${RUN_LONG_MULTI}" != "0" && "${RUN_LONG_MULTI}" != "1" ]]; then
     echo "ERROR: RUN_LONG_MULTI must be 0 or 1." >&2
     exit 1
 fi
+if [[ "${ENABLE_VCTX_TRACE}" != "0" && "${ENABLE_VCTX_TRACE}" != "1" ]]; then
+    echo "ERROR: ENABLE_VCTX_TRACE must be 0 or 1." >&2
+    exit 1
+fi
 if [[ ! "${CASE_RUN_TIMEOUT_SECONDS}" =~ ^[1-9][0-9]*$ ]]; then
     echo "ERROR: CASE_RUN_TIMEOUT_SECONDS must be a positive integer." >&2
     exit 1
@@ -44,12 +56,20 @@ fi
 
 mkdir -p "${MATRIX_DIR}"
 
+if [[ "${ENABLE_VCTX_TRACE}" == "1" ]]; then
+    [[ -x "${TRACE_HELPER}" ]] || { echo "ERROR: trace helper is not executable: ${TRACE_HELPER}" >&2; exit 1; }
+    echo "Authorizing VCTX trace access once before running the matrix..."
+    "${TRACE_HELPER}" --authorize
+fi
+
 # Case 1 proves that initialization and short inter-process switching still
 # work before either H2D descriptor ring approaches its first wrap.
 run_case "dual-40" env \
     FRAME_COUNT=40 \
     RUN_TIMEOUT_SECONDS="${CASE_RUN_TIMEOUT_SECONDS}" \
-    ENABLE_VCTX_TRACE=1 \
+    ENABLE_VCTX_TRACE="${ENABLE_VCTX_TRACE}" \
+    VCTX_TRACE_PREAUTHORIZED="${ENABLE_VCTX_TRACE}" \
+    TRACE_HELPER="${TRACE_HELPER}" \
     RUN_ROOT="${MATRIX_DIR}/dual-40" \
     "${DUAL_RUNNER}"
 
@@ -58,7 +78,9 @@ run_case "dual-40" env \
 run_case "single-200" env \
     FRAME_COUNT=200 \
     RUN_TIMEOUT_SECONDS="${CASE_RUN_TIMEOUT_SECONDS}" \
-    ENABLE_VCTX_TRACE=1 \
+    ENABLE_VCTX_TRACE="${ENABLE_VCTX_TRACE}" \
+    VCTX_TRACE_PREAUTHORIZED="${ENABLE_VCTX_TRACE}" \
+    TRACE_HELPER="${TRACE_HELPER}" \
     RUN_ROOT="${MATRIX_DIR}/single-200" \
     "${SINGLE_RUNNER}"
 
@@ -68,7 +90,9 @@ if [[ "${RUN_LONG_MULTI}" == "1" ]]; then
     run_case "dual-200" env \
         FRAME_COUNT=200 \
         RUN_TIMEOUT_SECONDS="${CASE_RUN_TIMEOUT_SECONDS}" \
-        ENABLE_VCTX_TRACE=1 \
+        ENABLE_VCTX_TRACE="${ENABLE_VCTX_TRACE}" \
+        VCTX_TRACE_PREAUTHORIZED="${ENABLE_VCTX_TRACE}" \
+        TRACE_HELPER="${TRACE_HELPER}" \
         RUN_ROOT="${MATRIX_DIR}/dual-200" \
         "${DUAL_RUNNER}"
 fi
