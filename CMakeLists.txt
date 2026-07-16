@@ -14,6 +14,9 @@ find_package(HailoRT ${HAILORT_REQUIRED_VERSION} EXACT REQUIRED)
 # Find OpenCV
 find_package(OpenCV REQUIRED)
 
+# multi_process uses std::thread for input/output VStreams.
+find_package(Threads REQUIRED)
+
 # Find jsoncpp via pkg-config if possible
 find_package(PkgConfig QUIET)
 if(PkgConfig_FOUND)
@@ -66,6 +69,7 @@ target_link_libraries(multi_process
     PRIVATE
         HailoRT::libhailort
         ${OpenCV_LIBS}
+        Threads::Threads
 )
 
 
