@@ -1,17 +1,17 @@
 #!/bin/bash
-
-# 에러 발생 시 즉시 중단
 set -e
 
-echo "Building the inference driver..."
+BUILD_DIR="./build"
+TARGET="inference_driver"
 
-# build 디렉토리로 이동
-if [ ! -d "./build" ]; then
-    echo "ERROR: 'build' directory not found."
-    exit 1
-fi
+echo "============================================"
+echo " Configuring project with CMake"
+echo "============================================"
+cmake -S . -B "$BUILD_DIR"
 
-cd ./build
-make
+echo "============================================"
+echo " Building $TARGET in $BUILD_DIR"
+echo "============================================"
+cmake --build "$BUILD_DIR" --target "$TARGET"
 
 echo "Build finished successfully."

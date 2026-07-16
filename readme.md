@@ -1,62 +1,37 @@
+# HailoRT Application
 
-**Build**
-To build the library with Multi-Process Service enabled, run:
+## Build
 
-```bash 
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DHAILO_BUILD_SERVICE=1 && sudo cmake --build build --config Release --target install 
-```
-
-**Copy the env file**
+Build the single inference target:
 
 ```bash
-sudo mkdir -p /etc/default
-sudo cp /usr/local/etc/default/hailort_service /etc/default/hailort_service
+./build_inference.sh
 ```
 
-example
+Build the multi-process target:
+
 ```bash
-cat /etc/default/hailort_service 
-# This file contains HailoRT's configurable environment variables for HailoRT Linux Service.
-# The environment variables are set to their default values.
-# To change an environment variable's value, follow the steps:
-# 1. Change the value of the selected environemt variable in this file
-# 2. Reload systemd unit files by running: `sudo systemctl daemon-reload`
-# 3. Copy this file to /etc/default/hailort_service
-# 4. Enable and start service by running: `sudo systemctl enable --now hailort.service`
-
-[Service]
-HAILORT_LOGGER_PATH="/home/taespberry/WORKSPACE/log_service"
-HAILO_MONITOR=1
-HAILO_TRACE=scheduler
-HAILO_TRACE_TIME_IN_SECONDS_BOUNDED_DUMP=0
-HAILO_TRACE_SIZE_IN_KB_BOUNDED_DUMP=0
-HAILO_TRACE_PATH="/home/taespberry/WORKSPACE/traces"
+./build_multi_process.sh
 ```
 
-**Enable Service**
-Enable and start the multi-process service with:
+Both scripts use CMake for configure and build.
 
-```bash 
-sudo systemctl enable --now hailort.service
-```
-If the service does not start properly, restart it:
+## Run Single Inference
 
-```bash 
-sudo systemctl restart hailort.service
+```bash
+./run_inference.sh
 ```
 
-**Configure the Hailo Service**
-(Optional) Edit the service configuration file if needed:
+This runs `build/inference_driver` with the model, image directory, and labels configured in the script.
 
-```bash 
-cat /etc/default/hailort_service
-sudo nano /etc/default/hailort_service
+## Run Multi-Process Inference
+
+```bash
+./run_inference_multi.sh
 ```
 
-Apply configuration changes:
+This runs `build/multi_process` with the model, image, labels, and scheduler parameters configured in the script.
 
-```bash 
-sudo systemctl daemon-reload
-```
+## Notes
 
-
+This project no longer uses `hailort.service`. The old service-based scripts and `systemctl` flow were removed.

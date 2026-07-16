@@ -1,15 +1,20 @@
 #!/bin/bash
 
 # ------------- Configuration -------------
-executable="/home/taespberry/WORKSPACE/hailort-application/build/inference_driver"
+executable="/home/taespberry/WORKSPACE/hailort-application/build/multi_process"
 model="/home/taespberry/WORKSPACE/official_models/resnet_v1_50.hef"
 #model="/home/taespberry/WORKSPACE/official_models/resnet_v1_50.hef"
 #model="/home/taespberry/WORKSPACE/official_models/vit_base.hef"
-image_dir="/home/taespberry/WORKSPACE/images"
+image="/home/taespberry/WORKSPACE/images/_images_1.png"
 class_labels="/home/taespberry/WORKSPACE/labels/imagenet_labels.json"
+frame_count=200
+batch_size=10
+priority=16
+timeout_ms=200
+threshold=3
 # -----------------------------------------
 
-# Sanity check for files and directories
+# Sanity check for files
 if [ ! -f "$executable" ]; then
     echo "ERROR: Executable not found at: $executable"
     echo "Please run './build_inference.sh' first."
@@ -21,8 +26,13 @@ if [ ! -f "$model" ]; then
     exit 1
 fi
 
-if [ ! -d "$image_dir" ]; then
-    echo "ERROR: Image directory not found: $image_dir"
+if [ ! -f "$image" ]; then
+    echo "ERROR: Image file not found: $image"
+    exit 1
+fi
+
+if [ ! -f "$class_labels" ]; then
+    echo "ERROR: Labels file not found: $class_labels"
     exit 1
 fi
 
@@ -40,8 +50,9 @@ if ! cd "$WORK_DIR"; then
 fi
 
 echo "Current working directory: $(pwd)"
-echo "Starting inference..."
+echo "Starting multi-process inference..."
 
-"$executable" "$model" "$image_dir" "$class_labels"
+"$executable" "$model" "$image" "$class_labels" \
+    "$frame_count" "$batch_size" "$priority" "$timeout_ms" "$threshold"
 
-echo "Inference finished"
+echo "Multi-process inference finished"
