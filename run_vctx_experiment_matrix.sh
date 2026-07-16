@@ -64,18 +64,36 @@ if [[ "${ENABLE_VCTX_TRACE}" == "1" ]]; then
         echo "Expected state file: ${EXTERNAL_TRACE_STATE_FILE}" >&2
         exit 1
     fi
+    external_trace_format_version="$(sed -n 's/^format_version=//p' "${EXTERNAL_TRACE_STATE_FILE}" | head -n 1)"
     external_trace_pid="$(sed -n 's/^pid=//p' "${EXTERNAL_TRACE_STATE_FILE}" | head -n 1)"
+    external_trace_producer_pid="$(sed -n 's/^producer_pid=//p' "${EXTERNAL_TRACE_STATE_FILE}" | head -n 1)"
     external_trace_log="$(sed -n 's/^log=//p' "${EXTERNAL_TRACE_STATE_FILE}" | head -n 1)"
+    external_trace_error_log="$(sed -n 's/^error_log=//p' "${EXTERNAL_TRACE_STATE_FILE}" | head -n 1)"
+    if [[ "${external_trace_format_version}" != "2" ]]; then
+        echo "ERROR: incompatible VCTX trace helper format: ${external_trace_format_version:-legacy}" >&2
+        echo "Stop and restart the updated hailo_vctx_trace.sh before running this matrix." >&2
+        exit 1
+    fi
     if [[ ! "${external_trace_pid}" =~ ^[1-9][0-9]*$ ]] ||
        ! kill -0 "${external_trace_pid}" 2>/dev/null; then
         echo "ERROR: external VCTX trace state is stale: ${EXTERNAL_TRACE_STATE_FILE}" >&2
         exit 1
     fi
-    if [[ -z "${external_trace_log}" || ! -r "${external_trace_log}" ]]; then
+    if [[ ! "${external_trace_producer_pid}" =~ ^[1-9][0-9]*$ ]] ||
+       ! kill -0 "${external_trace_producer_pid}" 2>/dev/null; then
+        echo "ERROR: external dmesg reader is not running: pid=${external_trace_producer_pid:-unknown}" >&2
+        exit 1
+    fi
+    if [[ -z "${external_trace_log}" || ! -r "${external_trace_log}" ||
+          -z "${external_trace_error_log}" || ! -r "${external_trace_error_log}" ]]; then
         echo "ERROR: external VCTX trace log is unavailable: ${external_trace_log:-unknown}" >&2
         exit 1
     fi
-    echo "Using independently running VCTX trace: pid=${external_trace_pid} log=${external_trace_log}"
+    if [[ -s "${external_trace_error_log}" ]]; then
+        echo "ERROR: external dmesg reader already reported errors: ${external_trace_error_log}" >&2
+        exit 1
+    fi
+    echo "Using independently running VCTX trace: pid=${external_trace_pid} reader_pid=${external_trace_producer_pid} log=${external_trace_log}"
 fi
 
 # Case 1 proves that initialization and short inter-process switching still
