@@ -15,15 +15,20 @@
 #include <algorithm>
 #include <chrono>
 #include <cctype>
+#include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <exception>
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <mutex>
+#include <numeric>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -37,6 +42,8 @@ namespace {
 
 constexpr hailo_format_type_t FORMAT_TYPE = HAILO_FORMAT_TYPE_AUTO;
 constexpr uint32_t DEVICE_COUNT = 1;
+constexpr size_t DEFAULT_RESULT_TOP_K = 3;
+constexpr size_t DEFAULT_RESULT_LOG_EVERY = 10;
 constexpr auto BARRIER_TIMEOUT = std::chrono::seconds(120);
 constexpr auto BARRIER_POLL_INTERVAL = std::chrono::milliseconds(10);
 
@@ -52,12 +59,31 @@ struct Options {
     uint8_t priority;
     uint32_t timeout_ms;
     uint32_t threshold;
+    size_t result_top_k = DEFAULT_RESULT_TOP_K;
+    size_t result_log_every = DEFAULT_RESULT_LOG_EVERY;
     bool use_barrier = false;
     fs::path barrier_dir;
 };
 
 struct ThreadData {
     std::vector<uint8_t> input_data;
+};
+
+struct Prediction {
+    size_t class_index = 0;
+    float score = 0.0f;
+};
+
+struct OutputInferenceSummary {
+    std::string stream_name;
+    hailo_format_type_t format_type = HAILO_FORMAT_TYPE_AUTO;
+    size_t element_count = 0;
+    size_t completed_frames = 0;
+    std::vector<size_t> top1_counts;
+    std::vector<Prediction> first_frame_top_k;
+    Prediction first_frame_top1;
+    Prediction last_frame_top1;
+    bool has_result = false;
 };
 
 void log_line(std::ostream &stream, const std::string &message)
@@ -103,6 +129,23 @@ bool parse_unsigned(const char *text, uint64_t maximum, uint64_t &value)
     } catch (const std::exception &) {
         return false;
     }
+}
+
+bool parse_size_environment(const char *name, bool allow_zero, size_t &value)
+{
+    const char *text = std::getenv(name);
+    if (nullptr == text) {
+        return true;
+    }
+
+    uint64_t parsed = 0;
+    if (!parse_unsigned(text, std::numeric_limits<size_t>::max(), parsed) ||
+        (!allow_zero && (0 == parsed))) {
+        std::cerr << "Invalid " << name << " value: " << text << std::endl;
+        return false;
+    }
+    value = static_cast<size_t>(parsed);
+    return true;
 }
 
 bool is_valid_worker_id(const std::string &worker_id)
@@ -157,6 +200,12 @@ bool parse_options(int argc, char **argv, Options &options)
     options.priority = static_cast<uint8_t>(priority);
     options.timeout_ms = static_cast<uint32_t>(timeout_ms);
     options.threshold = static_cast<uint32_t>(threshold);
+
+    if (!parse_size_environment("HAILO_RESULT_TOP_K", false, options.result_top_k) ||
+        !parse_size_environment("HAILO_RESULT_LOG_EVERY", true,
+            options.result_log_every)) {
+        return false;
+    }
 
     if (11 == argc) {
         g_worker_id = argv[9];
@@ -293,6 +342,192 @@ hailo_status wait_at_file_barrier(const Options &options)
     return HAILO_TIMEOUT;
 }
 
+const char *format_type_name(hailo_format_type_t format_type)
+{
+    switch (format_type) {
+    case HAILO_FORMAT_TYPE_UINT8:
+        return "UINT8";
+    case HAILO_FORMAT_TYPE_UINT16:
+        return "UINT16";
+    case HAILO_FORMAT_TYPE_FLOAT32:
+        return "FLOAT32";
+    case HAILO_FORMAT_TYPE_AUTO:
+        return "AUTO";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+size_t format_element_size(hailo_format_type_t format_type)
+{
+    switch (format_type) {
+    case HAILO_FORMAT_TYPE_UINT8:
+        return sizeof(uint8_t);
+    case HAILO_FORMAT_TYPE_UINT16:
+        return sizeof(uint16_t);
+    case HAILO_FORMAT_TYPE_FLOAT32:
+        return sizeof(float);
+    default:
+        return 0;
+    }
+}
+
+std::string log_safe_label(const std::vector<std::string> &labels, size_t class_index)
+{
+    std::string label = (class_index < labels.size() && !labels[class_index].empty()) ?
+        labels[class_index] : "<unknown>";
+
+    for (auto &character : label) {
+        const auto byte = static_cast<unsigned char>(character);
+        if ('"' == character) {
+            character = '\'';
+        } else if (std::iscntrl(byte)) {
+            character = ' ';
+        }
+    }
+    return label;
+}
+
+const hailo_quant_info_t &quant_info_for_element(
+    const std::vector<hailo_quant_info_t> &quant_infos,
+    const hailo_quant_info_t &fallback, size_t element_index, size_t element_count)
+{
+    if (quant_infos.size() == element_count) {
+        return quant_infos[element_index];
+    }
+    if (!quant_infos.empty()) {
+        return quant_infos.front();
+    }
+    return fallback;
+}
+
+bool decode_classification_scores(const std::vector<uint8_t> &data,
+    hailo_format_type_t format_type, const hailo_quant_info_t &fallback_quant_info,
+    const std::vector<hailo_quant_info_t> &quant_infos, std::vector<float> &scores)
+{
+    const size_t element_size = format_element_size(format_type);
+    if ((0 == element_size) || (data.size() % element_size != 0)) {
+        return false;
+    }
+
+    const size_t element_count = data.size() / element_size;
+    scores.resize(element_count);
+    for (size_t index = 0; index < element_count; ++index) {
+        float score = 0.0f;
+        if (HAILO_FORMAT_TYPE_FLOAT32 == format_type) {
+            std::memcpy(&score, data.data() + (index * element_size), sizeof(score));
+        } else {
+            const auto &quant_info = quant_info_for_element(quant_infos,
+                fallback_quant_info, index, element_count);
+            if (HAILO_FORMAT_TYPE_UINT8 == format_type) {
+                const auto raw_value = data[index];
+                score = (static_cast<float>(raw_value) - quant_info.qp_zp) *
+                    quant_info.qp_scale;
+            } else if (HAILO_FORMAT_TYPE_UINT16 == format_type) {
+                uint16_t raw_value = 0;
+                std::memcpy(&raw_value, data.data() + (index * element_size),
+                    sizeof(raw_value));
+                score = (static_cast<float>(raw_value) - quant_info.qp_zp) *
+                    quant_info.qp_scale;
+            }
+        }
+
+        if (!std::isfinite(score)) {
+            return false;
+        }
+        scores[index] = score;
+    }
+    return !scores.empty();
+}
+
+std::vector<Prediction> select_top_k(const std::vector<float> &scores, size_t requested_k)
+{
+    const size_t result_count = std::min(requested_k, scores.size());
+    std::vector<size_t> indices(scores.size());
+    std::iota(indices.begin(), indices.end(), 0);
+    std::partial_sort(indices.begin(), indices.begin() + result_count, indices.end(),
+        [&scores](size_t lhs, size_t rhs) {
+            if (scores[lhs] == scores[rhs]) {
+                return lhs < rhs;
+            }
+            return scores[lhs] > scores[rhs];
+        });
+
+    std::vector<Prediction> predictions;
+    predictions.reserve(result_count);
+    for (size_t rank = 0; rank < result_count; ++rank) {
+        predictions.push_back(Prediction{indices[rank], scores[indices[rank]]});
+    }
+    return predictions;
+}
+
+std::string prediction_fields(const Prediction &prediction,
+    const std::vector<std::string> &labels, const std::string &prefix)
+{
+    std::ostringstream stream;
+    stream << prefix << "_index=" << prediction.class_index
+           << ' ' << prefix << "_score=" << std::fixed << std::setprecision(6)
+           << prediction.score
+           << ' ' << prefix << "_label=\""
+           << log_safe_label(labels, prediction.class_index) << '"';
+    return stream.str();
+}
+
+void log_first_frame_top_k(const OutputInferenceSummary &summary,
+    const std::vector<std::string> &labels)
+{
+    std::ostringstream message;
+    message << "inference-result-topk stream=" << summary.stream_name
+            << " frame=0 k=" << summary.first_frame_top_k.size();
+    for (size_t rank = 0; rank < summary.first_frame_top_k.size(); ++rank) {
+        message << " rank" << (rank + 1) << "_index="
+                << summary.first_frame_top_k[rank].class_index
+                << " rank" << (rank + 1) << "_score=" << std::fixed
+                << std::setprecision(6) << summary.first_frame_top_k[rank].score
+                << " rank" << (rank + 1) << "_label=\""
+                << log_safe_label(labels,
+                    summary.first_frame_top_k[rank].class_index) << '"';
+    }
+    log_info(message.str());
+}
+
+void log_output_summary(const OutputInferenceSummary &summary,
+    const std::vector<std::string> &labels, size_t expected_frames)
+{
+    if (!summary.has_result || summary.top1_counts.empty()) {
+        log_error("inference-result-summary stream=" + summary.stream_name +
+            " completed_frames=" + std::to_string(summary.completed_frames) +
+            " expected_frames=" + std::to_string(expected_frames) +
+            " result=unavailable");
+        return;
+    }
+
+    const auto dominant = std::max_element(summary.top1_counts.begin(),
+        summary.top1_counts.end());
+    const size_t dominant_index = static_cast<size_t>(
+        std::distance(summary.top1_counts.begin(), dominant));
+    const size_t dominant_count = *dominant;
+    const double consistency = (0 == summary.completed_frames) ? 0.0 :
+        (100.0 * static_cast<double>(dominant_count) /
+            static_cast<double>(summary.completed_frames));
+
+    std::ostringstream message;
+    message << "inference-result-summary stream=" << summary.stream_name
+            << " format=" << format_type_name(summary.format_type)
+            << " elements=" << summary.element_count
+            << " completed_frames=" << summary.completed_frames
+            << " expected_frames=" << expected_frames
+            << " dominant_top1_index=" << dominant_index
+            << " dominant_top1_count=" << dominant_count
+            << " dominant_top1_consistency_pct=" << std::fixed
+            << std::setprecision(2) << consistency
+            << " dominant_top1_label=\""
+            << log_safe_label(labels, dominant_index) << "\" "
+            << prediction_fields(summary.first_frame_top1, labels, "first_top1")
+            << ' ' << prediction_fields(summary.last_frame_top1, labels, "last_top1");
+    log_info(message.str());
+}
+
 void write_all(InputVStream &input, std::vector<uint8_t> &data,
     hailo_status &status, size_t stream_index, size_t frame_count)
 {
@@ -311,16 +546,80 @@ void write_all(InputVStream &input, std::vector<uint8_t> &data,
 }
 
 void read_all(OutputVStream &output, hailo_status &status,
-    size_t stream_index, size_t frame_count)
+    size_t stream_index, size_t frame_count, const std::vector<std::string> &labels,
+    size_t result_top_k, size_t result_log_every,
+    OutputInferenceSummary &summary)
 {
     std::vector<uint8_t> data(output.get_frame_size());
-    log_info("output-stream-start index=" + std::to_string(stream_index));
+    std::vector<float> scores;
+    const auto &output_info = output.get_info();
+    const auto &quant_infos = output.get_quant_infos();
+    auto format_type = output.get_user_buffer_format().type;
+    if (HAILO_FORMAT_TYPE_AUTO == format_type) {
+        format_type = output_info.format.type;
+    }
+
+    const size_t element_size = format_element_size(format_type);
+    if ((0 == element_size) || data.empty() || (data.size() % element_size != 0)) {
+        log_error("unsupported output format: stream=" + output.name() +
+            " format=" + format_type_name(format_type) +
+            " frame_bytes=" + std::to_string(data.size()));
+        status = HAILO_INVALID_ARGUMENT;
+        return;
+    }
+
+    summary.stream_name = output.name();
+    summary.format_type = format_type;
+    summary.element_count = data.size() / element_size;
+    summary.top1_counts.assign(summary.element_count, 0);
+    log_info("output-stream-start index=" + std::to_string(stream_index) +
+        " name=" + summary.stream_name +
+        " format=" + format_type_name(format_type) +
+        " frame_bytes=" + std::to_string(data.size()) +
+        " elements=" + std::to_string(summary.element_count) +
+        " quant_infos=" + std::to_string(quant_infos.size()));
+
     for (size_t frame = 0; frame < frame_count; ++frame) {
         status = output.read(MemoryView(data.data(), data.size()));
         if (HAILO_SUCCESS != status) {
             log_error("output read failed: stream=" + std::to_string(stream_index) +
                 " frame=" + std::to_string(frame) + " status=" + std::to_string(status));
             return;
+        }
+
+        if (!decode_classification_scores(data, format_type,
+            output_info.quant_info, quant_infos, scores)) {
+            log_error("output decode failed: stream=" + std::to_string(stream_index) +
+                " frame=" + std::to_string(frame) +
+                " format=" + format_type_name(format_type));
+            status = HAILO_INVALID_OPERATION;
+            return;
+        }
+
+        const auto predictions = select_top_k(scores, result_top_k);
+        if (predictions.empty()) {
+            log_error("output has no classification elements: stream=" +
+                std::to_string(stream_index));
+            status = HAILO_INVALID_OPERATION;
+            return;
+        }
+
+        const auto &top1 = predictions.front();
+        summary.completed_frames++;
+        summary.top1_counts[top1.class_index]++;
+        summary.last_frame_top1 = top1;
+        if (!summary.has_result) {
+            summary.has_result = true;
+            summary.first_frame_top1 = top1;
+            summary.first_frame_top_k = predictions;
+            log_first_frame_top_k(summary, labels);
+        }
+
+        if ((0 != result_log_every) &&
+            (((frame + 1) % result_log_every == 0) || (frame + 1 == frame_count))) {
+            log_info("inference-result stream=" + summary.stream_name +
+                " frame=" + std::to_string(frame) + " " +
+                prediction_fields(top1, labels, "top1"));
         }
     }
     status = HAILO_SUCCESS;
@@ -330,18 +629,21 @@ void read_all(OutputVStream &output, hailo_status &status,
 
 hailo_status infer(std::vector<InputVStream> &input_streams,
     std::vector<OutputVStream> &output_streams, ThreadData &thread_data,
-    size_t frame_count)
+    size_t frame_count, const std::vector<std::string> &labels,
+    size_t result_top_k, size_t result_log_every)
 {
     std::vector<hailo_status> input_status(input_streams.size(), HAILO_UNINITIALIZED);
     std::vector<hailo_status> output_status(output_streams.size(), HAILO_UNINITIALIZED);
     std::vector<std::thread> input_threads;
     std::vector<std::thread> output_threads;
+    std::vector<OutputInferenceSummary> output_summaries(output_streams.size());
     input_threads.reserve(input_streams.size());
     output_threads.reserve(output_streams.size());
 
     for (size_t index = 0; index < output_streams.size(); ++index) {
         output_threads.emplace_back(read_all, std::ref(output_streams[index]),
-            std::ref(output_status[index]), index, frame_count);
+            std::ref(output_status[index]), index, frame_count, std::cref(labels),
+            result_top_k, result_log_every, std::ref(output_summaries[index]));
     }
     for (size_t index = 0; index < input_streams.size(); ++index) {
         input_threads.emplace_back(write_all, std::ref(input_streams[index]),
@@ -353,6 +655,10 @@ hailo_status infer(std::vector<InputVStream> &input_streams,
     }
     for (auto &thread : output_threads) {
         thread.join();
+    }
+
+    for (const auto &summary : output_summaries) {
+        log_output_summary(summary, labels, frame_count);
     }
 
     for (const auto status : input_status) {
@@ -379,8 +685,9 @@ int main(int argc, char **argv)
 
     log_info("process-start direct_mode=1");
 
+    std::vector<std::string> labels;
     try {
-        const auto labels = util::load_labels_jsoncpp(options.labels_path);
+        labels = util::load_labels_jsoncpp(options.labels_path);
         log_info("labels-loaded count=" + std::to_string(labels.size()));
     } catch (const std::exception &exception) {
         log_error("failed to load labels: " + std::string(exception.what()));
@@ -450,7 +757,9 @@ int main(int argc, char **argv)
 
     log_info("configuration-complete inputs=" + std::to_string(vstreams->first.size()) +
         " outputs=" + std::to_string(vstreams->second.size()) +
-        " frames=" + std::to_string(options.frame_count));
+        " frames=" + std::to_string(options.frame_count) +
+        " result_top_k=" + std::to_string(options.result_top_k) +
+        " result_log_every=" + std::to_string(options.result_log_every));
 
     const auto barrier_status = wait_at_file_barrier(options);
     if (HAILO_SUCCESS != barrier_status) {
@@ -462,7 +771,8 @@ int main(int argc, char **argv)
     log_info("inference-start start_unix_ms=" + std::to_string(start_unix_ms));
 
     const auto status = infer(vstreams->first, vstreams->second,
-        thread_data, options.frame_count);
+        thread_data, options.frame_count, labels, options.result_top_k,
+        options.result_log_every);
     const auto end_unix_ms = unix_time_ms();
     const auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - start_time).count();

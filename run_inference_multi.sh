@@ -24,6 +24,8 @@ readonly SCHEDULER_TIMEOUT_MS_A="${SCHEDULER_TIMEOUT_MS_A:-${SCHEDULER_TIMEOUT_M
 readonly SCHEDULER_TIMEOUT_MS_B="${SCHEDULER_TIMEOUT_MS_B:-${SCHEDULER_TIMEOUT_MS:-200}}"
 readonly SCHEDULER_THRESHOLD_A="${SCHEDULER_THRESHOLD_A:-${SCHEDULER_THRESHOLD:-3}}"
 readonly SCHEDULER_THRESHOLD_B="${SCHEDULER_THRESHOLD_B:-${SCHEDULER_THRESHOLD:-3}}"
+readonly RESULT_TOP_K="${RESULT_TOP_K:-3}"
+readonly RESULT_LOG_EVERY="${RESULT_LOG_EVERY:-10}"
 
 readonly READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-120}"
 readonly RUN_TIMEOUT_SECONDS="${RUN_TIMEOUT_SECONDS:-300}"
@@ -36,6 +38,7 @@ readonly BARRIER_DIR="${RUN_DIR}/barrier"
 readonly WORKER_A_LOG="${RUN_DIR}/worker-A.log"
 readonly WORKER_B_LOG="${RUN_DIR}/worker-B.log"
 readonly TRACE_LOG="${RUN_DIR}/dmesg-vctx.log"
+readonly RESULTS_LOG="${RUN_DIR}/inference-results.log"
 readonly SUMMARY_LOG="${RUN_DIR}/summary.txt"
 
 worker_a_pid=""
@@ -139,6 +142,8 @@ require_nonnegative_integer "SCHEDULER_TIMEOUT_MS_A" "${SCHEDULER_TIMEOUT_MS_A}"
 require_nonnegative_integer "SCHEDULER_TIMEOUT_MS_B" "${SCHEDULER_TIMEOUT_MS_B}"
 require_nonnegative_integer "SCHEDULER_THRESHOLD_A" "${SCHEDULER_THRESHOLD_A}"
 require_nonnegative_integer "SCHEDULER_THRESHOLD_B" "${SCHEDULER_THRESHOLD_B}"
+require_positive_integer "RESULT_TOP_K" "${RESULT_TOP_K}"
+require_nonnegative_integer "RESULT_LOG_EVERY" "${RESULT_LOG_EVERY}"
 require_positive_integer "READY_TIMEOUT_SECONDS" "${READY_TIMEOUT_SECONDS}"
 require_positive_integer "RUN_TIMEOUT_SECONDS" "${RUN_TIMEOUT_SECONDS}"
 if ! command -v timeout >/dev/null 2>&1; then
@@ -155,6 +160,8 @@ mkdir -p "${BARRIER_DIR}"
     echo "worker_B_model=${MODEL_B}"
     echo "worker_A_frames=${FRAME_COUNT_A}"
     echo "worker_B_frames=${FRAME_COUNT_B}"
+    echo "result_top_k=${RESULT_TOP_K}"
+    echo "result_log_every=${RESULT_LOG_EVERY}"
     echo "multi_process_service=0"
     echo "vctx_trace=${ENABLE_VCTX_TRACE}"
 } | tee "${RUN_DIR}/configuration.txt"
@@ -189,6 +196,8 @@ fi
 echo "Launching two independent direct-mode processes..."
 
 timeout --signal=TERM --kill-after=5s "${RUN_TIMEOUT_SECONDS}s" \
+    env HAILO_RESULT_TOP_K="${RESULT_TOP_K}" \
+    HAILO_RESULT_LOG_EVERY="${RESULT_LOG_EVERY}" \
     "${EXECUTABLE}" "${MODEL_A}" "${IMAGE_A}" "${CLASS_LABELS_A}" \
     "${FRAME_COUNT_A}" "${BATCH_SIZE_A}" "${PRIORITY_A}" \
     "${SCHEDULER_TIMEOUT_MS_A}" "${SCHEDULER_THRESHOLD_A}" \
@@ -196,6 +205,8 @@ timeout --signal=TERM --kill-after=5s "${RUN_TIMEOUT_SECONDS}s" \
 worker_a_pid=$!
 
 timeout --signal=TERM --kill-after=5s "${RUN_TIMEOUT_SECONDS}s" \
+    env HAILO_RESULT_TOP_K="${RESULT_TOP_K}" \
+    HAILO_RESULT_LOG_EVERY="${RESULT_LOG_EVERY}" \
     "${EXECUTABLE}" "${MODEL_B}" "${IMAGE_B}" "${CLASS_LABELS_B}" \
     "${FRAME_COUNT_B}" "${BATCH_SIZE_B}" "${PRIORITY_B}" \
     "${SCHEDULER_TIMEOUT_MS_B}" "${SCHEDULER_THRESHOLD_B}" \
@@ -240,6 +251,22 @@ worker_b_pid=""
 
 stop_trace
 
+print_worker_results()
+{
+    local worker_name=$1
+    local worker_log=$2
+
+    echo "----- Worker ${worker_name} inference results -----"
+    if ! grep -E 'inference-result-(topk|summary)' "${worker_log}"; then
+        echo "No decoded inference result was recorded for worker ${worker_name}."
+    fi
+}
+
+{
+    print_worker_results "A" "${WORKER_A_LOG}"
+    print_worker_results "B" "${WORKER_B_LOG}"
+} | tee "${RESULTS_LOG}"
+
 extract_last_value()
 {
     local key=$1
@@ -263,8 +290,14 @@ if [[ "${start_a}" =~ ^[0-9]+$ && "${start_b}" =~ ^[0-9]+$ && \
 fi
 
 vctx_count=0
+stall_warning_count=0
+ring_wrap_count=0
+cursor_mismatch_count=0
 if [[ "${ENABLE_VCTX_TRACE}" == "1" && -f "${TRACE_LOG}" ]]; then
     vctx_count="$(grep -Eo 'vctx=[0-9]+' "${TRACE_LOG}" | sort -u | wc -l || true)"
+    stall_warning_count="$(grep -c 'TRANSFER_STALL_WARN' "${TRACE_LOG}" || true)"
+    ring_wrap_count="$(grep -c 'TRANSFER_COMMIT.*ring_wrap=1' "${TRACE_LOG}" || true)"
+    cursor_mismatch_count="$(grep -Ec 'CHANNEL_CURSOR_RESTORE.*(avail_restore_failed=1|proc_mismatch=1)' "${TRACE_LOG}" || true)"
 fi
 
 result="PASS"
@@ -290,8 +323,12 @@ fi
     echo "worker_B_interval_ms=${start_b:-unknown}..${end_b:-unknown}"
     echo "inference_overlap_ms=${overlap_ms}"
     echo "unique_vctx_count=${vctx_count}"
+    echo "ring_wrap_commits=${ring_wrap_count}"
+    echo "cursor_restore_mismatches=${cursor_mismatch_count}"
+    echo "stall_warnings=${stall_warning_count}"
     echo "worker_A_log=${WORKER_A_LOG}"
     echo "worker_B_log=${WORKER_B_LOG}"
+    echo "inference_results_log=${RESULTS_LOG}"
     if [[ "${ENABLE_VCTX_TRACE}" == "1" ]]; then
         echo "dmesg_log=${TRACE_LOG}"
     fi
