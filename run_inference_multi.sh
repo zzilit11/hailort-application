@@ -257,7 +257,7 @@ print_worker_results()
     local worker_log=$2
 
     echo "----- Worker ${worker_name} inference results -----"
-    if ! grep -E 'inference-result-(topk|summary)' "${worker_log}"; then
+    if ! grep -E 'inference-(result-(topk|summary)|score-validation)' "${worker_log}"; then
         echo "No decoded inference result was recorded for worker ${worker_name}."
     fi
 }
@@ -292,31 +292,43 @@ fi
 vctx_count=0
 stall_warning_count=0
 ring_wrap_count=0
-cursor_mismatch_count=0
+cursor_rebase_failure_count=0
 if [[ "${ENABLE_VCTX_TRACE}" == "1" && -f "${TRACE_LOG}" ]]; then
     vctx_count="$(grep -Eo 'vctx=[0-9]+' "${TRACE_LOG}" | sort -u | wc -l || true)"
     stall_warning_count="$(grep -c 'TRANSFER_STALL_WARN' "${TRACE_LOG}" || true)"
-    ring_wrap_count="$(grep -c 'TRANSFER_COMMIT.*ring_wrap=1' "${TRACE_LOG}" || true)"
-    cursor_mismatch_count="$(grep -Ec 'CHANNEL_CURSOR_RESTORE.*(avail_restore_failed=1|proc_mismatch=1)' "${TRACE_LOG}" || true)"
+    ring_wrap_count="$(grep -c 'TRANSFER_COMMIT.*logical_ring_wrap=1' "${TRACE_LOG}" || true)"
+    cursor_rebase_failure_count="$(grep -c 'CHANNEL_CURSOR_REBASE.*physical_idle_failed=1' "${TRACE_LOG}" || true)"
 fi
+score_validation_failure_count_a="$(grep -c 'inference-result-summary.*score_validation=FAIL' "${WORKER_A_LOG}" || true)"
+score_validation_failure_count_b="$(grep -c 'inference-result-summary.*score_validation=FAIL' "${WORKER_B_LOG}" || true)"
 
-result="PASS"
-if (( 0 != status_a || 0 != status_b )); then
-    result="FAIL"
+transport_result="PASS"
+score_result="PASS"
+if ! grep -q 'inference-transport-complete status=0' "${WORKER_A_LOG}" || \
+   ! grep -q 'inference-transport-complete status=0' "${WORKER_B_LOG}"; then
+    transport_result="FAIL"
 fi
-if ! grep -q 'inference-complete status=0' "${WORKER_A_LOG}" || \
-   ! grep -q 'inference-complete status=0' "${WORKER_B_LOG}"; then
-    result="FAIL"
+if (( score_validation_failure_count_a != 0 || score_validation_failure_count_b != 0 )); then
+    score_result="FAIL"
+fi
+if (( cursor_rebase_failure_count != 0 || stall_warning_count != 0 )); then
+    transport_result="FAIL"
 fi
 if (( overlap_ms <= 0 )); then
-    result="FAIL"
+    transport_result="FAIL"
 fi
 if [[ "${ENABLE_VCTX_TRACE}" == "1" ]] && (( vctx_count < 2 )); then
+    transport_result="FAIL"
+fi
+result="PASS"
+if [[ "${transport_result}" != "PASS" || "${score_result}" != "PASS" ]]; then
     result="FAIL"
 fi
 
 {
     echo "result=${result}"
+    echo "transport_result=${transport_result}"
+    echo "score_result=${score_result}"
     echo "worker_A_exit=${status_a}"
     echo "worker_B_exit=${status_b}"
     echo "worker_A_interval_ms=${start_a:-unknown}..${end_a:-unknown}"
@@ -324,8 +336,10 @@ fi
     echo "inference_overlap_ms=${overlap_ms}"
     echo "unique_vctx_count=${vctx_count}"
     echo "ring_wrap_commits=${ring_wrap_count}"
-    echo "cursor_restore_mismatches=${cursor_mismatch_count}"
+    echo "cursor_rebase_failures=${cursor_rebase_failure_count}"
     echo "stall_warnings=${stall_warning_count}"
+    echo "worker_A_score_validation_failures=${score_validation_failure_count_a}"
+    echo "worker_B_score_validation_failures=${score_validation_failure_count_b}"
     echo "worker_A_log=${WORKER_A_LOG}"
     echo "worker_B_log=${WORKER_B_LOG}"
     echo "inference_results_log=${RESULTS_LOG}"

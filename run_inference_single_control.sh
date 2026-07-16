@@ -148,32 +148,47 @@ stop_trace
 
 {
     echo "----- Single worker inference results -----"
-    if ! grep -E 'inference-result-(topk|summary)' "${WORKER_LOG}"; then
+    if ! grep -E 'inference-(result-(topk|summary)|score-validation)' "${WORKER_LOG}"; then
         echo "No decoded inference result was recorded."
     fi
 } | tee "${RESULTS_LOG}"
 
-result="PASS"
-if (( worker_status != 0 )) || ! grep -q 'inference-complete status=0' "${WORKER_LOG}"; then
-    result="FAIL"
+transport_result="PASS"
+score_result="PASS"
+if ! grep -q 'inference-transport-complete status=0' "${WORKER_LOG}"; then
+    transport_result="FAIL"
+fi
+if grep -q 'inference-result-summary.*score_validation=FAIL' "${WORKER_LOG}"; then
+    score_result="FAIL"
 fi
 
 stall_warning_count=0
 ring_wrap_count=0
-cursor_mismatch_count=0
+cursor_rebase_failure_count=0
+score_validation_failure_count="$(grep -c 'inference-result-summary.*score_validation=FAIL' "${WORKER_LOG}" || true)"
 if [[ "${ENABLE_VCTX_TRACE}" == "1" && -f "${TRACE_LOG}" ]]; then
     stall_warning_count="$(grep -c 'TRANSFER_STALL_WARN' "${TRACE_LOG}" || true)"
-    ring_wrap_count="$(grep -c 'TRANSFER_COMMIT.*ring_wrap=1' "${TRACE_LOG}" || true)"
-    cursor_mismatch_count="$(grep -Ec 'CHANNEL_CURSOR_RESTORE.*(avail_restore_failed=1|proc_mismatch=1)' "${TRACE_LOG}" || true)"
+    ring_wrap_count="$(grep -c 'TRANSFER_COMMIT.*logical_ring_wrap=1' "${TRACE_LOG}" || true)"
+    cursor_rebase_failure_count="$(grep -c 'CHANNEL_CURSOR_REBASE.*physical_idle_failed=1' "${TRACE_LOG}" || true)"
+fi
+if (( cursor_rebase_failure_count != 0 || stall_warning_count != 0 )); then
+    transport_result="FAIL"
+fi
+result="PASS"
+if [[ "${transport_result}" != "PASS" || "${score_result}" != "PASS" ]]; then
+    result="FAIL"
 fi
 
 {
     echo "result=${result}"
+    echo "transport_result=${transport_result}"
+    echo "score_result=${score_result}"
     echo "worker_exit=${worker_status}"
     echo "frames=${FRAME_COUNT}"
     echo "ring_wrap_commits=${ring_wrap_count}"
-    echo "cursor_restore_mismatches=${cursor_mismatch_count}"
+    echo "cursor_rebase_failures=${cursor_rebase_failure_count}"
     echo "stall_warnings=${stall_warning_count}"
+    echo "score_validation_failures=${score_validation_failure_count}"
     echo "worker_log=${WORKER_LOG}"
     echo "inference_results_log=${RESULTS_LOG}"
     if [[ "${ENABLE_VCTX_TRACE}" == "1" ]]; then

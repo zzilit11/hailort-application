@@ -31,6 +31,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <unistd.h>
@@ -40,7 +41,8 @@ using namespace hailort;
 
 namespace {
 
-constexpr hailo_format_type_t FORMAT_TYPE = HAILO_FORMAT_TYPE_AUTO;
+constexpr hailo_format_type_t INPUT_FORMAT_TYPE = HAILO_FORMAT_TYPE_AUTO;
+constexpr hailo_format_type_t OUTPUT_FORMAT_TYPE = HAILO_FORMAT_TYPE_FLOAT32;
 constexpr uint32_t DEVICE_COUNT = 1;
 constexpr size_t DEFAULT_RESULT_TOP_K = 3;
 constexpr size_t DEFAULT_RESULT_LOG_EVERY = 10;
@@ -74,15 +76,31 @@ struct Prediction {
     float score = 0.0f;
 };
 
+struct ScoreStatistics {
+    double sum = 0.0;
+    float minimum = 0.0f;
+    float maximum = 0.0f;
+    size_t positive_count = 0;
+    bool range_valid = false;
+    bool sum_valid = false;
+    bool saturated = false;
+};
+
 struct OutputInferenceSummary {
     std::string stream_name;
     hailo_format_type_t format_type = HAILO_FORMAT_TYPE_AUTO;
+    hailo_format_type_t native_format_type = HAILO_FORMAT_TYPE_AUTO;
     size_t element_count = 0;
     size_t completed_frames = 0;
+    size_t invalid_score_frames = 0;
+    size_t saturated_score_frames = 0;
     std::vector<size_t> top1_counts;
     std::vector<Prediction> first_frame_top_k;
     Prediction first_frame_top1;
     Prediction last_frame_top1;
+    ScoreStatistics first_frame_statistics;
+    ScoreStatistics last_frame_statistics;
+    bool expects_probabilities = false;
     bool has_result = false;
 };
 
@@ -286,6 +304,37 @@ Expected<std::shared_ptr<ConfiguredNetworkGroup>> configure_network_group(
     return network_group;
 }
 
+Expected<std::pair<std::vector<InputVStream>, std::vector<OutputVStream>>>
+create_test_vstreams(ConfiguredNetworkGroup &network_group)
+{
+    auto input_params = network_group.make_input_vstream_params(false,
+        INPUT_FORMAT_TYPE, HAILO_DEFAULT_VSTREAM_TIMEOUT_MS,
+        HAILO_DEFAULT_VSTREAM_QUEUE_SIZE);
+    if (!input_params) {
+        return make_unexpected(input_params.status());
+    }
+
+    auto output_params = network_group.make_output_vstream_params(false,
+        OUTPUT_FORMAT_TYPE, HAILO_DEFAULT_VSTREAM_TIMEOUT_MS,
+        HAILO_DEFAULT_VSTREAM_QUEUE_SIZE);
+    if (!output_params) {
+        return make_unexpected(output_params.status());
+    }
+
+    auto input_vstreams = VStreamsBuilder::create_input_vstreams(network_group,
+        input_params.value());
+    if (!input_vstreams) {
+        return make_unexpected(input_vstreams.status());
+    }
+    auto output_vstreams = VStreamsBuilder::create_output_vstreams(network_group,
+        output_params.value());
+    if (!output_vstreams) {
+        return make_unexpected(output_vstreams.status());
+    }
+
+    return std::make_pair(input_vstreams.release(), output_vstreams.release());
+}
+
 hailo_status wait_at_file_barrier(const Options &options)
 {
     if (!options.use_barrier) {
@@ -388,25 +437,23 @@ std::string log_safe_label(const std::vector<std::string> &labels, size_t class_
     return label;
 }
 
-const hailo_quant_info_t &quant_info_for_element(
-    const std::vector<hailo_quant_info_t> &quant_infos,
-    const hailo_quant_info_t &fallback, size_t element_index, size_t element_count)
+bool is_softmax_stream(const std::string &stream_name)
 {
-    if (quant_infos.size() == element_count) {
-        return quant_infos[element_index];
-    }
-    if (!quant_infos.empty()) {
-        return quant_infos.front();
-    }
-    return fallback;
+    std::string lowered(stream_name);
+    std::transform(lowered.begin(), lowered.end(), lowered.begin(),
+        [](unsigned char character) {
+            return static_cast<char>(std::tolower(character));
+        });
+    return std::string::npos != lowered.find("softmax");
 }
 
 bool decode_classification_scores(const std::vector<uint8_t> &data,
-    hailo_format_type_t format_type, const hailo_quant_info_t &fallback_quant_info,
-    const std::vector<hailo_quant_info_t> &quant_infos, std::vector<float> &scores)
+    hailo_format_type_t format_type, std::vector<float> &scores)
 {
     const size_t element_size = format_element_size(format_type);
-    if ((0 == element_size) || (data.size() % element_size != 0)) {
+    if ((HAILO_FORMAT_TYPE_FLOAT32 != format_type) ||
+        (sizeof(float) != element_size) ||
+        (data.size() % element_size != 0)) {
         return false;
     }
 
@@ -414,23 +461,7 @@ bool decode_classification_scores(const std::vector<uint8_t> &data,
     scores.resize(element_count);
     for (size_t index = 0; index < element_count; ++index) {
         float score = 0.0f;
-        if (HAILO_FORMAT_TYPE_FLOAT32 == format_type) {
-            std::memcpy(&score, data.data() + (index * element_size), sizeof(score));
-        } else {
-            const auto &quant_info = quant_info_for_element(quant_infos,
-                fallback_quant_info, index, element_count);
-            if (HAILO_FORMAT_TYPE_UINT8 == format_type) {
-                const auto raw_value = data[index];
-                score = (static_cast<float>(raw_value) - quant_info.qp_zp) *
-                    quant_info.qp_scale;
-            } else if (HAILO_FORMAT_TYPE_UINT16 == format_type) {
-                uint16_t raw_value = 0;
-                std::memcpy(&raw_value, data.data() + (index * element_size),
-                    sizeof(raw_value));
-                score = (static_cast<float>(raw_value) - quant_info.qp_zp) *
-                    quant_info.qp_scale;
-            }
-        }
+        std::memcpy(&score, data.data() + (index * element_size), sizeof(score));
 
         if (!std::isfinite(score)) {
             return false;
@@ -438,6 +469,59 @@ bool decode_classification_scores(const std::vector<uint8_t> &data,
         scores[index] = score;
     }
     return !scores.empty();
+}
+
+ScoreStatistics analyze_probability_scores(const std::vector<float> &scores)
+{
+    constexpr float RANGE_EPSILON = 1e-5f;
+    constexpr double SUM_TOLERANCE = 5e-2;
+    constexpr float SATURATION_EPSILON = 1e-6f;
+    ScoreStatistics statistics;
+
+    if (scores.empty()) {
+        return statistics;
+    }
+
+    const auto minmax = std::minmax_element(scores.begin(), scores.end());
+    statistics.minimum = *minmax.first;
+    statistics.maximum = *minmax.second;
+    statistics.sum = std::accumulate(scores.begin(), scores.end(), 0.0);
+    statistics.positive_count = static_cast<size_t>(std::count_if(
+        scores.begin(), scores.end(), [](float score) {
+            return score > 1e-8f;
+        }));
+    statistics.range_valid =
+        (statistics.minimum >= -RANGE_EPSILON) &&
+        (statistics.maximum <= (1.0f + RANGE_EPSILON));
+    statistics.sum_valid = std::abs(statistics.sum - 1.0) <= SUM_TOLERANCE;
+    statistics.saturated =
+        (statistics.maximum >= (1.0f - SATURATION_EPSILON)) ||
+        (statistics.positive_count <= 1);
+    return statistics;
+}
+
+bool score_statistics_valid(const ScoreStatistics &statistics)
+{
+    return statistics.range_valid && statistics.sum_valid &&
+        !statistics.saturated;
+}
+
+std::string score_statistics_fields(const ScoreStatistics &statistics,
+    const std::string &prefix)
+{
+    std::ostringstream stream;
+    stream << prefix << "_score_sum=" << std::fixed << std::setprecision(9)
+           << statistics.sum
+           << ' ' << prefix << "_score_min=" << statistics.minimum
+           << ' ' << prefix << "_score_max=" << statistics.maximum
+           << ' ' << prefix << "_positive_count=" << statistics.positive_count
+           << ' ' << prefix << "_range_valid="
+           << static_cast<unsigned int>(statistics.range_valid)
+           << ' ' << prefix << "_sum_valid="
+           << static_cast<unsigned int>(statistics.sum_valid)
+           << ' ' << prefix << "_saturated="
+           << static_cast<unsigned int>(statistics.saturated);
+    return stream.str();
 }
 
 std::vector<Prediction> select_top_k(const std::vector<float> &scores, size_t requested_k)
@@ -466,7 +550,7 @@ std::string prediction_fields(const Prediction &prediction,
 {
     std::ostringstream stream;
     stream << prefix << "_index=" << prediction.class_index
-           << ' ' << prefix << "_score=" << std::fixed << std::setprecision(6)
+           << ' ' << prefix << "_score=" << std::fixed << std::setprecision(9)
            << prediction.score
            << ' ' << prefix << "_label=\""
            << log_safe_label(labels, prediction.class_index) << '"';
@@ -483,7 +567,7 @@ void log_first_frame_top_k(const OutputInferenceSummary &summary,
         message << " rank" << (rank + 1) << "_index="
                 << summary.first_frame_top_k[rank].class_index
                 << " rank" << (rank + 1) << "_score=" << std::fixed
-                << std::setprecision(6) << summary.first_frame_top_k[rank].score
+                << std::setprecision(9) << summary.first_frame_top_k[rank].score
                 << " rank" << (rank + 1) << "_label=\""
                 << log_safe_label(labels,
                     summary.first_frame_top_k[rank].class_index) << '"';
@@ -510,13 +594,21 @@ void log_output_summary(const OutputInferenceSummary &summary,
     const double consistency = (0 == summary.completed_frames) ? 0.0 :
         (100.0 * static_cast<double>(dominant_count) /
             static_cast<double>(summary.completed_frames));
+    const bool score_validation_pass = !summary.expects_probabilities ||
+        ((0 == summary.invalid_score_frames) &&
+         (0 == summary.saturated_score_frames));
 
     std::ostringstream message;
     message << "inference-result-summary stream=" << summary.stream_name
             << " format=" << format_type_name(summary.format_type)
+            << " native_format=" << format_type_name(summary.native_format_type)
             << " elements=" << summary.element_count
             << " completed_frames=" << summary.completed_frames
             << " expected_frames=" << expected_frames
+            << " score_validation="
+            << (score_validation_pass ? "PASS" : "FAIL")
+            << " invalid_score_frames=" << summary.invalid_score_frames
+            << " saturated_score_frames=" << summary.saturated_score_frames
             << " dominant_top1_index=" << dominant_index
             << " dominant_top1_count=" << dominant_count
             << " dominant_top1_consistency_pct=" << std::fixed
@@ -524,7 +616,9 @@ void log_output_summary(const OutputInferenceSummary &summary,
             << " dominant_top1_label=\""
             << log_safe_label(labels, dominant_index) << "\" "
             << prediction_fields(summary.first_frame_top1, labels, "first_top1")
-            << ' ' << prediction_fields(summary.last_frame_top1, labels, "last_top1");
+            << ' ' << prediction_fields(summary.last_frame_top1, labels, "last_top1")
+            << ' ' << score_statistics_fields(summary.first_frame_statistics, "first")
+            << ' ' << score_statistics_fields(summary.last_frame_statistics, "last");
     log_info(message.str());
 }
 
@@ -555,14 +649,14 @@ void read_all(OutputVStream &output, hailo_status &status,
     const auto &output_info = output.get_info();
     const auto &quant_infos = output.get_quant_infos();
     auto format_type = output.get_user_buffer_format().type;
-    if (HAILO_FORMAT_TYPE_AUTO == format_type) {
-        format_type = output_info.format.type;
-    }
 
     const size_t element_size = format_element_size(format_type);
-    if ((0 == element_size) || data.empty() || (data.size() % element_size != 0)) {
-        log_error("unsupported output format: stream=" + output.name() +
-            " format=" + format_type_name(format_type) +
+    if ((HAILO_FORMAT_TYPE_FLOAT32 != format_type) ||
+        (sizeof(float) != element_size) || data.empty() ||
+        (data.size() % element_size != 0)) {
+        log_error("FLOAT32 output format was not applied: stream=" + output.name() +
+            " user_format=" + format_type_name(format_type) +
+            " native_format=" + format_type_name(output_info.format.type) +
             " frame_bytes=" + std::to_string(data.size()));
         status = HAILO_INVALID_ARGUMENT;
         return;
@@ -570,14 +664,21 @@ void read_all(OutputVStream &output, hailo_status &status,
 
     summary.stream_name = output.name();
     summary.format_type = format_type;
+    summary.native_format_type = output_info.format.type;
     summary.element_count = data.size() / element_size;
+    summary.expects_probabilities = is_softmax_stream(summary.stream_name);
     summary.top1_counts.assign(summary.element_count, 0);
     log_info("output-stream-start index=" + std::to_string(stream_index) +
         " name=" + summary.stream_name +
-        " format=" + format_type_name(format_type) +
+        " user_format=" + format_type_name(format_type) +
+        " native_format=" + format_type_name(output_info.format.type) +
         " frame_bytes=" + std::to_string(data.size()) +
         " elements=" + std::to_string(summary.element_count) +
-        " quant_infos=" + std::to_string(quant_infos.size()));
+        " quant_infos=" + std::to_string(quant_infos.size()) +
+        " qp_scale=" + std::to_string(output_info.quant_info.qp_scale) +
+        " qp_zp=" + std::to_string(output_info.quant_info.qp_zp) +
+        " expects_probabilities=" +
+            std::to_string(static_cast<unsigned int>(summary.expects_probabilities)));
 
     for (size_t frame = 0; frame < frame_count; ++frame) {
         status = output.read(MemoryView(data.data(), data.size()));
@@ -587,8 +688,7 @@ void read_all(OutputVStream &output, hailo_status &status,
             return;
         }
 
-        if (!decode_classification_scores(data, format_type,
-            output_info.quant_info, quant_infos, scores)) {
+        if (!decode_classification_scores(data, format_type, scores)) {
             log_error("output decode failed: stream=" + std::to_string(stream_index) +
                 " frame=" + std::to_string(frame) +
                 " format=" + format_type_name(format_type));
@@ -605,21 +705,45 @@ void read_all(OutputVStream &output, hailo_status &status,
         }
 
         const auto &top1 = predictions.front();
+        const auto score_statistics = analyze_probability_scores(scores);
+        if (!summary.expects_probabilities && score_statistics.range_valid &&
+            score_statistics.sum_valid) {
+            summary.expects_probabilities = true;
+            log_info("probability-output-detected stream=" + summary.stream_name +
+                " source=observed-distribution frame=" + std::to_string(frame));
+        }
+        const bool score_valid = !summary.expects_probabilities ||
+            score_statistics_valid(score_statistics);
         summary.completed_frames++;
+        if (summary.expects_probabilities) {
+            if (!score_statistics.range_valid || !score_statistics.sum_valid) {
+                summary.invalid_score_frames++;
+            }
+            if (score_statistics.saturated) {
+                summary.saturated_score_frames++;
+            }
+        }
         summary.top1_counts[top1.class_index]++;
         summary.last_frame_top1 = top1;
+        summary.last_frame_statistics = score_statistics;
         if (!summary.has_result) {
             summary.has_result = true;
             summary.first_frame_top1 = top1;
             summary.first_frame_top_k = predictions;
+            summary.first_frame_statistics = score_statistics;
             log_first_frame_top_k(summary, labels);
+            log_info("inference-score-validation stream=" + summary.stream_name +
+                " frame=0 result=" + (score_valid ? "PASS" : "FAIL") + " " +
+                score_statistics_fields(score_statistics, "frame"));
         }
 
         if ((0 != result_log_every) &&
             (((frame + 1) % result_log_every == 0) || (frame + 1 == frame_count))) {
             log_info("inference-result stream=" + summary.stream_name +
                 " frame=" + std::to_string(frame) + " " +
-                prediction_fields(top1, labels, "top1"));
+                prediction_fields(top1, labels, "top1") + " " +
+                score_statistics_fields(score_statistics, "frame") +
+                " score_validation=" + (score_valid ? "PASS" : "FAIL"));
         }
     }
     status = HAILO_SUCCESS;
@@ -671,6 +795,21 @@ hailo_status infer(std::vector<InputVStream> &input_streams,
             return status;
         }
     }
+    for (const auto &summary : output_summaries) {
+        if (summary.completed_frames != frame_count) {
+            return HAILO_INVALID_OPERATION;
+        }
+    }
+    log_info("inference-transport-complete status=0 frames=" +
+        std::to_string(frame_count) + " outputs=" +
+        std::to_string(output_summaries.size()));
+    for (const auto &summary : output_summaries) {
+        if (summary.expects_probabilities &&
+            ((0 != summary.invalid_score_frames) ||
+             (0 != summary.saturated_score_frames))) {
+            return HAILO_INVALID_OPERATION;
+        }
+    }
     return HAILO_SUCCESS;
 }
 
@@ -706,7 +845,7 @@ int main(int argc, char **argv)
         return network_group.status();
     }
 
-    auto vstreams = VStreamsBuilder::create_vstreams(*network_group.value(), {}, FORMAT_TYPE);
+    auto vstreams = create_test_vstreams(*network_group.value());
     if (!vstreams) {
         log_error("VStream creation failed, status=" + std::to_string(vstreams.status()));
         return vstreams.status();
@@ -725,6 +864,18 @@ int main(int argc, char **argv)
     const auto input_info = input_vstream.get_info();
     const float qp_scale = input_info.quant_info.qp_scale;
     const float qp_zp = input_info.quant_info.qp_zp;
+    const bool raw_rgb_preprocessing =
+        (std::abs(qp_scale - 1.0f) < 1e-3f) &&
+        (std::abs(qp_zp) < 1e-3f);
+    log_info("input-stream-info name=" + input_vstream.name() +
+        " user_format=" +
+            format_type_name(input_vstream.get_user_buffer_format().type) +
+        " native_format=" + format_type_name(input_info.format.type) +
+        " qp_scale=" + std::to_string(qp_scale) +
+        " qp_zp=" + std::to_string(qp_zp) +
+        " preprocessing=" +
+            (raw_rgb_preprocessing ? "resize-crop-rgb-uint8" :
+                "resize-crop-bgr-mean-quantized"));
 
     const auto image = cv::imread(options.image_path, cv::IMREAD_COLOR);
     if (image.empty()) {
@@ -757,6 +908,7 @@ int main(int argc, char **argv)
 
     log_info("configuration-complete inputs=" + std::to_string(vstreams->first.size()) +
         " outputs=" + std::to_string(vstreams->second.size()) +
+        " output_user_format=" + format_type_name(OUTPUT_FORMAT_TYPE) +
         " frames=" + std::to_string(options.frame_count) +
         " result_top_k=" + std::to_string(options.result_top_k) +
         " result_log_every=" + std::to_string(options.result_log_every));

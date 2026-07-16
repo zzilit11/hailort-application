@@ -74,8 +74,22 @@ logs/multi-process-YYYYmmdd-HHMMSS-PID/
 
 - worker A와 B의 exit status가 모두 0이다.
 - 두 로그에 `inference-complete status=0`이 존재한다.
+- output VStream을 `FLOAT32`로 읽었고 softmax score의 범위와 합이 유효하며
+  `1.0/0.0`으로 포화된 frame이 없다.
 - 두 process가 HailoRT inference 호출 안에 머문 시간이 서로 중첩된다.
 - dmesg에서 서로 다른 `vctx=<id>`가 2개 이상 관측된다.
+- trace가 활성화된 경우 `CHANNEL_CURSOR_REBASE physical_idle_failed=1` 및
+  `TRANSFER_STALL_WARN`이 없다.
+
+`transport_result`는 모든 frame의 input/output 전송 완료, process 실행 중첩,
+VCTX/cursor/stall 조건만 나타내며 `score_result`는 추론 score 검증만 나타낸다.
+따라서 전송은 끝났지만 score가 포화된 경우
+`transport_result=PASS`, `score_result=FAIL`, 최종 `result=FAIL`로 분리된다.
+
+worker log의 `inference-result-summary`에는 user/native output format, 첫/마지막
+frame의 score 합·최솟값·최댓값·양수 class 수와 `score_validation=PASS|FAIL`이
+기록된다. 기존 실험처럼 softmax Top-1이 정확히 `1.000000000`이고 나머지가
+모두 0이면 정상 추론으로 인정하지 않고 worker가 non-zero로 종료한다.
 
 시간 중첩은 두 process가 동시에 실행 중이었다는 userspace 증거이며, 실제 transfer
 전환은 `dmesg-vctx.log`의 `vctx-trace`와 `vctx-fw` 순서를 함께 확인해야 한다.
