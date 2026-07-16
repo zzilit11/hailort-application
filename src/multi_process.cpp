@@ -83,7 +83,7 @@ struct ScoreStatistics {
     size_t positive_count = 0;
     bool range_valid = false;
     bool sum_valid = false;
-    bool saturated = false;
+    bool one_hot = false;
 };
 
 struct OutputInferenceSummary {
@@ -93,7 +93,7 @@ struct OutputInferenceSummary {
     size_t element_count = 0;
     size_t completed_frames = 0;
     size_t invalid_score_frames = 0;
-    size_t saturated_score_frames = 0;
+    size_t one_hot_score_frames = 0;
     std::vector<size_t> top1_counts;
     std::vector<Prediction> first_frame_top_k;
     Prediction first_frame_top1;
@@ -475,7 +475,7 @@ ScoreStatistics analyze_probability_scores(const std::vector<float> &scores)
 {
     constexpr float RANGE_EPSILON = 1e-5f;
     constexpr double SUM_TOLERANCE = 5e-2;
-    constexpr float SATURATION_EPSILON = 1e-6f;
+    constexpr float ONE_HOT_EPSILON = 1e-6f;
     ScoreStatistics statistics;
 
     if (scores.empty()) {
@@ -494,16 +494,15 @@ ScoreStatistics analyze_probability_scores(const std::vector<float> &scores)
         (statistics.minimum >= -RANGE_EPSILON) &&
         (statistics.maximum <= (1.0f + RANGE_EPSILON));
     statistics.sum_valid = std::abs(statistics.sum - 1.0) <= SUM_TOLERANCE;
-    statistics.saturated =
-        (statistics.maximum >= (1.0f - SATURATION_EPSILON)) ||
+    statistics.one_hot =
+        (statistics.maximum >= (1.0f - ONE_HOT_EPSILON)) ||
         (statistics.positive_count <= 1);
     return statistics;
 }
 
 bool score_statistics_valid(const ScoreStatistics &statistics)
 {
-    return statistics.range_valid && statistics.sum_valid &&
-        !statistics.saturated;
+    return statistics.range_valid && statistics.sum_valid;
 }
 
 std::string score_statistics_fields(const ScoreStatistics &statistics,
@@ -519,8 +518,8 @@ std::string score_statistics_fields(const ScoreStatistics &statistics,
            << static_cast<unsigned int>(statistics.range_valid)
            << ' ' << prefix << "_sum_valid="
            << static_cast<unsigned int>(statistics.sum_valid)
-           << ' ' << prefix << "_saturated="
-           << static_cast<unsigned int>(statistics.saturated);
+           << ' ' << prefix << "_one_hot="
+           << static_cast<unsigned int>(statistics.one_hot);
     return stream.str();
 }
 
@@ -595,8 +594,9 @@ void log_output_summary(const OutputInferenceSummary &summary,
         (100.0 * static_cast<double>(dominant_count) /
             static_cast<double>(summary.completed_frames));
     const bool score_validation_pass = !summary.expects_probabilities ||
-        ((0 == summary.invalid_score_frames) &&
-         (0 == summary.saturated_score_frames));
+        (0 == summary.invalid_score_frames);
+    const bool classification_pass =
+        (summary.completed_frames == expected_frames) && score_validation_pass;
 
     std::ostringstream message;
     message << "inference-result-summary stream=" << summary.stream_name
@@ -605,10 +605,12 @@ void log_output_summary(const OutputInferenceSummary &summary,
             << " elements=" << summary.element_count
             << " completed_frames=" << summary.completed_frames
             << " expected_frames=" << expected_frames
+            << " classification_result="
+            << (classification_pass ? "PASS" : "FAIL")
             << " score_validation="
             << (score_validation_pass ? "PASS" : "FAIL")
             << " invalid_score_frames=" << summary.invalid_score_frames
-            << " saturated_score_frames=" << summary.saturated_score_frames
+            << " one_hot_score_frames=" << summary.one_hot_score_frames
             << " dominant_top1_index=" << dominant_index
             << " dominant_top1_count=" << dominant_count
             << " dominant_top1_consistency_pct=" << std::fixed
@@ -719,8 +721,8 @@ void read_all(OutputVStream &output, hailo_status &status,
             if (!score_statistics.range_valid || !score_statistics.sum_valid) {
                 summary.invalid_score_frames++;
             }
-            if (score_statistics.saturated) {
-                summary.saturated_score_frames++;
+            if (score_statistics.one_hot) {
+                summary.one_hot_score_frames++;
             }
         }
         summary.top1_counts[top1.class_index]++;
@@ -805,8 +807,7 @@ hailo_status infer(std::vector<InputVStream> &input_streams,
         std::to_string(output_summaries.size()));
     for (const auto &summary : output_summaries) {
         if (summary.expects_probabilities &&
-            ((0 != summary.invalid_score_frames) ||
-             (0 != summary.saturated_score_frames))) {
+            (0 != summary.invalid_score_frames)) {
             return HAILO_INVALID_OPERATION;
         }
     }

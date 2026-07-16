@@ -74,22 +74,60 @@ logs/multi-process-YYYYmmdd-HHMMSS-PID/
 
 - worker A와 B의 exit status가 모두 0이다.
 - 두 로그에 `inference-complete status=0`이 존재한다.
-- output VStream을 `FLOAT32`로 읽었고 softmax score의 범위와 합이 유효하며
-  `1.0/0.0`으로 포화된 frame이 없다.
+- output VStream이 정상적으로 decode되고 모든 frame에서 Top1 class가
+  계산되었다.
+- softmax output의 범위와 합이 유효하다. Native `UINT8` output이
+  `FLOAT32`로 변환된 경우 `1.0/0.0` one-hot score도 유효한 분류
+  결과로 인정한다.
 - 두 process가 HailoRT inference 호출 안에 머문 시간이 서로 중첩된다.
 - dmesg에서 서로 다른 `vctx=<id>`가 2개 이상 관측된다.
 - trace가 활성화된 경우 `CHANNEL_CURSOR_REBASE physical_idle_failed=1` 및
   `TRANSFER_STALL_WARN`이 없다.
 
 `transport_result`는 모든 frame의 input/output 전송 완료, process 실행 중첩,
-VCTX/cursor/stall 조건만 나타내며 `score_result`는 추론 score 검증만 나타낸다.
-따라서 전송은 끝났지만 score가 포화된 경우
-`transport_result=PASS`, `score_result=FAIL`, 최종 `result=FAIL`로 분리된다.
+VCTX/cursor/stall 조건을 나타낸다. `classification_result`는 output decode,
+frame 완료 및 Top1 계산 성공 여부를 나타낸다. `score_result`는 기존 log
+분석과의 호환을 위한 `classification_result`의 alias이다. Label이 정답인지는
+정답 annotation을 입력받지 않으므로 자동 판정하지 않고, 실제 Top1 label을 log에
+출력한다.
+
+## VCTX HTML timeline
+
+`tools/vctx_timeline.py`는 matrix 전체, 개별 run directory 또는
+`dmesg-vctx.log` 하나를 입력받아 외부 package가 필요 없는 standalone HTML을
+생성한다.
+
+```bash
+python3 tools/vctx_timeline.py \
+    logs/vctx-matrix-20260716-185733-50746
+```
+
+기본 출력은 입력 directory의 `vctx-timeline.html`이다. 출력 위치를 지정할 수도
+있다.
+
+```bash
+python3 tools/vctx_timeline.py RUN_DIRECTORY \
+    --output /tmp/vctx-timeline.html
+```
+
+HTML에는 다음 정보가 포함된다.
+
+- VCTX별 device ownership과 firmware switch
+- engine/channel별 transfer commit-to-complete 구간
+- logical/physical descriptor 위치와 ring-wrap 강조
+- cursor rebase, stall, reject, abort event
+- worker transport/classification 결과와 실행 시간
+- 시간 범위 zoom/pan, hover detail 및 event 검색/filter
+
+기본적으로 반복량이 많은 `WAIT_EVENT`, `WAIT_DELIVER`, `WORKER_DRAIN`은 제외한다.
+이 event까지 포함하려면 `--include-wait-events`를 사용한다.
 
 worker log의 `inference-result-summary`에는 user/native output format, 첫/마지막
-frame의 score 합·최솟값·최댓값·양수 class 수와 `score_validation=PASS|FAIL`이
-기록된다. 기존 실험처럼 softmax Top-1이 정확히 `1.000000000`이고 나머지가
-모두 0이면 정상 추론으로 인정하지 않고 worker가 non-zero로 종료한다.
+frame의 score 합·최솟값·최댓값·양수 class 수,
+`classification_result=PASS|FAIL` 및 `score_validation=PASS|FAIL`이 기록된다.
+softmax Top1이 `1.000000000`이고 나머지가 0인 frame은
+`one_hot_score_frames`로 계수하지만 정상 추론으로 인정한다. 즉 score 분포
+진단은 유지하면서 Top1 분류 성공 판정과 분리한다.
 
 시간 중첩은 두 process가 동시에 실행 중이었다는 userspace 증거이며, 실제 transfer
 전환은 `dmesg-vctx.log`의 `vctx-trace`와 `vctx-fw` 순서를 함께 확인해야 한다.

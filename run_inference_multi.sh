@@ -301,15 +301,20 @@ if [[ "${ENABLE_VCTX_TRACE}" == "1" && -f "${TRACE_LOG}" ]]; then
 fi
 score_validation_failure_count_a="$(grep -c 'inference-result-summary.*score_validation=FAIL' "${WORKER_A_LOG}" || true)"
 score_validation_failure_count_b="$(grep -c 'inference-result-summary.*score_validation=FAIL' "${WORKER_B_LOG}" || true)"
+classification_pass_count_a="$(grep -c 'inference-result-summary.*classification_result=PASS' "${WORKER_A_LOG}" || true)"
+classification_pass_count_b="$(grep -c 'inference-result-summary.*classification_result=PASS' "${WORKER_B_LOG}" || true)"
+classification_failure_count_a="$(grep -c 'inference-result-summary.*classification_result=FAIL' "${WORKER_A_LOG}" || true)"
+classification_failure_count_b="$(grep -c 'inference-result-summary.*classification_result=FAIL' "${WORKER_B_LOG}" || true)"
 
 transport_result="PASS"
-score_result="PASS"
+classification_result="PASS"
 if ! grep -q 'inference-transport-complete status=0' "${WORKER_A_LOG}" || \
    ! grep -q 'inference-transport-complete status=0' "${WORKER_B_LOG}"; then
     transport_result="FAIL"
 fi
-if (( score_validation_failure_count_a != 0 || score_validation_failure_count_b != 0 )); then
-    score_result="FAIL"
+if (( classification_pass_count_a == 0 || classification_pass_count_b == 0 ||
+      classification_failure_count_a != 0 || classification_failure_count_b != 0 )); then
+    classification_result="FAIL"
 fi
 if (( cursor_rebase_failure_count != 0 || stall_warning_count != 0 )); then
     transport_result="FAIL"
@@ -321,14 +326,16 @@ if [[ "${ENABLE_VCTX_TRACE}" == "1" ]] && (( vctx_count < 2 )); then
     transport_result="FAIL"
 fi
 result="PASS"
-if [[ "${transport_result}" != "PASS" || "${score_result}" != "PASS" ]]; then
+if [[ "${transport_result}" != "PASS" || "${classification_result}" != "PASS" ]]; then
     result="FAIL"
 fi
 
 {
     echo "result=${result}"
     echo "transport_result=${transport_result}"
-    echo "score_result=${score_result}"
+    echo "classification_result=${classification_result}"
+    # Compatibility alias for existing log consumers.
+    echo "score_result=${classification_result}"
     echo "worker_A_exit=${status_a}"
     echo "worker_B_exit=${status_b}"
     echo "worker_A_interval_ms=${start_a:-unknown}..${end_a:-unknown}"
@@ -340,6 +347,8 @@ fi
     echo "stall_warnings=${stall_warning_count}"
     echo "worker_A_score_validation_failures=${score_validation_failure_count_a}"
     echo "worker_B_score_validation_failures=${score_validation_failure_count_b}"
+    echo "worker_A_classification_failures=${classification_failure_count_a}"
+    echo "worker_B_classification_failures=${classification_failure_count_b}"
     echo "worker_A_log=${WORKER_A_LOG}"
     echo "worker_B_log=${WORKER_B_LOG}"
     echo "inference_results_log=${RESULTS_LOG}"

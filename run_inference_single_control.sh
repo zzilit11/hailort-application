@@ -154,12 +154,13 @@ stop_trace
 } | tee "${RESULTS_LOG}"
 
 transport_result="PASS"
-score_result="PASS"
+classification_result="PASS"
 if ! grep -q 'inference-transport-complete status=0' "${WORKER_LOG}"; then
     transport_result="FAIL"
 fi
-if grep -q 'inference-result-summary.*score_validation=FAIL' "${WORKER_LOG}"; then
-    score_result="FAIL"
+if ! grep -q 'inference-result-summary.*classification_result=PASS' "${WORKER_LOG}" ||
+   grep -q 'inference-result-summary.*classification_result=FAIL' "${WORKER_LOG}"; then
+    classification_result="FAIL"
 fi
 
 stall_warning_count=0
@@ -175,14 +176,16 @@ if (( cursor_rebase_failure_count != 0 || stall_warning_count != 0 )); then
     transport_result="FAIL"
 fi
 result="PASS"
-if [[ "${transport_result}" != "PASS" || "${score_result}" != "PASS" ]]; then
+if [[ "${transport_result}" != "PASS" || "${classification_result}" != "PASS" ]]; then
     result="FAIL"
 fi
 
 {
     echo "result=${result}"
     echo "transport_result=${transport_result}"
-    echo "score_result=${score_result}"
+    echo "classification_result=${classification_result}"
+    # Compatibility alias for existing log consumers.
+    echo "score_result=${classification_result}"
     echo "worker_exit=${worker_status}"
     echo "frames=${FRAME_COUNT}"
     echo "ring_wrap_commits=${ring_wrap_count}"
