@@ -30,8 +30,8 @@ readonly RESULT_LOG_EVERY="${RESULT_LOG_EVERY:-10}"
 readonly READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-120}"
 readonly RUN_TIMEOUT_SECONDS="${RUN_TIMEOUT_SECONDS:-300}"
 readonly ENABLE_VCTX_TRACE="${ENABLE_VCTX_TRACE:-1}"
-readonly VCTX_TRACE_PREAUTHORIZED="${VCTX_TRACE_PREAUTHORIZED:-0}"
-readonly TRACE_HELPER="${TRACE_HELPER:-${SCRIPT_DIR}/../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh}"
+readonly VCTX_TRACE_SESSION_UID="$(id -u)"
+readonly EXTERNAL_TRACE_STATE_FILE="${HAILO_VCTX_TRACE_STATE_FILE:-/tmp/hailo-vctx-trace-${VCTX_TRACE_SESSION_UID}.state}"
 readonly RUN_ROOT="${RUN_ROOT:-${SCRIPT_DIR}/logs}"
 readonly RUN_ID="$(date +'%Y%m%d-%H%M%S')-$$"
 readonly RUN_DIR="${RUN_ROOT}/multi-process-${RUN_ID}"
@@ -46,34 +46,80 @@ readonly VCTX_QUANTUM_TRANSFERS_PARAMETER="/sys/module/hailo_pci/parameters/vctx
 
 worker_a_pid=""
 worker_b_pid=""
-trace_pid=""
+external_trace_pid=""
+external_trace_log=""
+external_trace_start_line=0
+external_trace_active=0
+external_trace_captured=0
 
 if (( EUID == 0 )); then
     echo "ERROR: do not run this inference script with sudo/root." >&2
-    echo "Run it as the normal user; the VCTX trace helper elevates only sysfs/dmesg access." >&2
+    echo "Run it as the normal user after starting hailo_vctx_trace.sh separately." >&2
     exit 1
 fi
 
+read_external_state_value()
+{
+    local key=$1
+
+    sed -n "s/^${key}=//p" "${EXTERNAL_TRACE_STATE_FILE}" 2>/dev/null | head -n 1
+}
+
+prepare_external_trace()
+{
+    if [[ ! -r "${EXTERNAL_TRACE_STATE_FILE}" ]]; then
+        echo "ERROR: external VCTX trace is not running." >&2
+        echo "Start hailo_vctx_trace.sh in another terminal first." >&2
+        echo "Expected state file: ${EXTERNAL_TRACE_STATE_FILE}" >&2
+        return 1
+    fi
+
+    external_trace_pid="$(read_external_state_value pid)"
+    external_trace_log="$(read_external_state_value log)"
+    if [[ ! "${external_trace_pid}" =~ ^[1-9][0-9]*$ ]] ||
+       ! kill -0 "${external_trace_pid}" 2>/dev/null; then
+        echo "ERROR: external VCTX trace state is stale: ${EXTERNAL_TRACE_STATE_FILE}" >&2
+        return 1
+    fi
+    if [[ -z "${external_trace_log}" || ! -r "${external_trace_log}" ]]; then
+        echo "ERROR: external VCTX trace log is unavailable: ${external_trace_log:-unknown}" >&2
+        return 1
+    fi
+
+    external_trace_start_line="$(wc -l <"${external_trace_log}")"
+    external_trace_active=1
+    echo "Using external VCTX trace: pid=${external_trace_pid} log=${external_trace_log} start_line=${external_trace_start_line}"
+}
+
+capture_external_trace()
+{
+    local end_line
+    local first_line
+
+    if (( external_trace_active == 0 || external_trace_captured != 0 )); then
+        return
+    fi
+    if ! kill -0 "${external_trace_pid}" 2>/dev/null; then
+        echo "ERROR: external VCTX trace stopped during the experiment: pid=${external_trace_pid}" >&2
+        return 1
+    fi
+    sleep 0.2
+    end_line="$(wc -l <"${external_trace_log}")"
+    if (( end_line < external_trace_start_line )); then
+        echo "WARNING: external trace log was truncated; capturing its current contents." >&2
+        sed -n '1,$p' "${external_trace_log}" >"${TRACE_LOG}"
+    elif (( end_line == external_trace_start_line )); then
+        : >"${TRACE_LOG}"
+    else
+        first_line=$((external_trace_start_line + 1))
+        sed -n "${first_line},${end_line}p" "${external_trace_log}" >"${TRACE_LOG}"
+    fi
+    external_trace_captured=1
+}
+
 stop_trace()
 {
-    if [[ -n "${trace_pid}" ]]; then
-        if kill -0 "${trace_pid}" 2>/dev/null; then
-            # The helper owns and reaps its dmesg/grep children, then restores
-            # the original vctx_trace value from its EXIT trap.
-            kill -TERM "${trace_pid}" 2>/dev/null || true
-            for _ in {1..30}; do
-                if ! kill -0 "${trace_pid}" 2>/dev/null; then
-                    break
-                fi
-                sleep 0.1
-            done
-            if kill -0 "${trace_pid}" 2>/dev/null; then
-                kill -KILL "${trace_pid}" 2>/dev/null || true
-            fi
-        fi
-        wait "${trace_pid}" 2>/dev/null || true
-    fi
-    trace_pid=""
+    capture_external_trace
 }
 
 cleanup()
@@ -86,7 +132,7 @@ cleanup()
             kill -TERM "${pid}" 2>/dev/null || true
         fi
     done
-    stop_trace
+    stop_trace || true
 
     if (( 0 != exit_code )); then
         echo "Experiment failed. Logs: ${RUN_DIR}" >&2
@@ -165,10 +211,6 @@ require_positive_integer "RESULT_TOP_K" "${RESULT_TOP_K}"
 require_nonnegative_integer "RESULT_LOG_EVERY" "${RESULT_LOG_EVERY}"
 require_positive_integer "READY_TIMEOUT_SECONDS" "${READY_TIMEOUT_SECONDS}"
 require_positive_integer "RUN_TIMEOUT_SECONDS" "${RUN_TIMEOUT_SECONDS}"
-if [[ "${VCTX_TRACE_PREAUTHORIZED}" != "0" && "${VCTX_TRACE_PREAUTHORIZED}" != "1" ]]; then
-    echo "ERROR: VCTX_TRACE_PREAUTHORIZED must be 0 or 1." >&2
-    exit 1
-fi
 if ! command -v timeout >/dev/null 2>&1; then
     echo "ERROR: GNU timeout is required to bound worker execution time." >&2
     exit 1
@@ -190,32 +232,14 @@ vctx_quantum_transfers="$(read_module_parameter "${VCTX_QUANTUM_TRANSFERS_PARAME
     echo "result_log_every=${RESULT_LOG_EVERY}"
     echo "multi_process_service=0"
     echo "vctx_trace=${ENABLE_VCTX_TRACE}"
-    echo "vctx_trace_preauthorized=${VCTX_TRACE_PREAUTHORIZED}"
+    echo "vctx_trace_mode=external"
+    echo "external_trace_state_file=${EXTERNAL_TRACE_STATE_FILE}"
     echo "vctx_dispatch_quantum_ms=${vctx_quantum_ms}"
     echo "vctx_dispatch_quantum_transfers=${vctx_quantum_transfers}"
 } | tee "${RUN_DIR}/configuration.txt"
 
 if [[ "${ENABLE_VCTX_TRACE}" == "1" ]]; then
-    require_file "vctx trace helper" "${TRACE_HELPER}"
-    if [[ ! -x "${TRACE_HELPER}" ]]; then
-        echo "ERROR: trace helper is not executable: ${TRACE_HELPER}" >&2
-        exit 1
-    fi
-    # Authorization is interactive and therefore completed in the foreground.
-    # --follow remains in the same login session so tty-scoped sudo credentials
-    # are reusable, and is strictly non-interactive in the background.
-    if [[ "${VCTX_TRACE_PREAUTHORIZED}" != "1" ]]; then
-        "${TRACE_HELPER}" --authorize
-    fi
-    "${TRACE_HELPER}" --follow >"${TRACE_LOG}" 2>&1 &
-    trace_pid=$!
-    sleep 0.5
-    if ! kill -0 "${trace_pid}" 2>/dev/null; then
-        wait "${trace_pid}" || true
-        echo "ERROR: vctx dmesg tracing failed to start. See ${TRACE_LOG}" >&2
-        tail -n 20 "${TRACE_LOG}" >&2 || true
-        exit 1
-    fi
+    prepare_external_trace
 elif [[ "${ENABLE_VCTX_TRACE}" != "0" ]]; then
     echo "ERROR: ENABLE_VCTX_TRACE must be 0 or 1." >&2
     exit 1

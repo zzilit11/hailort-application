@@ -19,21 +19,31 @@ scheduler=ROUND_ROBIN (process-local)
 
 ## Two-process direct-mode test
 
-기본 Raspberry Pi 경로가 현재 환경과 같으면 다음 명령만 실행한다.
+기본 실행은 두 터미널을 사용한다. 두 파일 모두 일반 사용자 권한으로 실행하고
+script 자체에 `sudo`를 붙이지 않는다.
 
 ```bash
-./run_inference_multi.sh
+# Terminal 1: 계속 실행해 둔다. 필요한 sudo 인증은 helper 내부에서만 수행한다.
+chmod +x ../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh
+../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh
+
+# Terminal 2
+chmod +x ./run_vctx_experiment_matrix.sh
+./run_vctx_experiment_matrix.sh
 ```
 
+Matrix 내부 case runner는 `bash`로 호출되므로 `run_inference_multi.sh`와
+`run_inference_single_control.sh`에는 실행 권한을 별도로 줄 필요가 없다.
+
 전체 script를 `sudo`로 실행하지 않는다. Worker와 log directory는 일반 사용자
-소유로 유지하고, script가 foreground에서 trace helper를 호출할 때 sudo password를
-한 번 입력한다. Helper는 `vctx_trace` sysfs write와 제한된 `dmesg` read만
-승격한다. `/dev/hailo*` open 자체가 거부된다면 root로 worker를 실행하지 말고
-device node의 udev/group 권한을 수정해야 한다.
+소유로 유지한다. Trace helper만 `vctx_trace` sysfs write와 제한된 `dmesg` read를
+위해 sudo를 사용한다. Matrix와 case runner는 helper를 호출하거나 종료하지 않는다.
+`/dev/hailo*` open 자체가 거부된다면 root로 worker를 실행하지 말고 device node의
+udev/group 권한을 수정해야 한다.
 
 script는 다음 순서로 동작한다.
 
-1. KMD `vctx_trace`를 활성화하고 `dmesg` 수집을 시작한다.
+1. 별도 helper가 게시한 외부 trace session과 공용 log를 확인한다.
 2. 동일한 `build/multi_process` 실행 파일을 worker A와 B로 각각 실행한다.
 3. 각 worker가 독립적으로 VDevice, HEF, network group, VStream을 구성한다.
 4. 두 worker의 `ready.A`, `ready.B`를 확인한 후 공통 start barrier를 해제한다.
@@ -53,28 +63,28 @@ echo 50 | sudo tee /sys/module/hailo_pci/parameters/vctx_dispatch_quantum_ms
 echo 64 | sudo tee /sys/module/hailo_pci/parameters/vctx_dispatch_quantum_transfers
 ```
 
-Matrix 시험도 일반 사용자로 실행한다.
-
-```bash
-./run_vctx_experiment_matrix.sh
-```
-
 호출 관계와 권한 경계는 다음과 같다.
 
 ```text
-run_vctx_experiment_matrix.sh        normal user, sudo 사전 인증 1회
-  +-- run_inference_multi.sh         normal user
-  |     +-- hailo_vctx_trace.sh      sysfs/dmesg 명령만 제한적 sudo
-  |     +-- multi_process A/B        normal user
-  +-- run_inference_single_control.sh
-        +-- hailo_vctx_trace.sh      sysfs/dmesg 명령만 제한적 sudo
-        +-- multi_process            normal user
+Terminal 1
+  hailo_vctx_trace.sh                limited sudo, independent lifetime
+    +-- /tmp/hailo-vctx-trace-UID.state
+    +-- /tmp/hailo-vctx-trace-UID.log
+
+Terminal 2
+  run_vctx_experiment_matrix.sh      normal user, never calls trace helper
+    +-- run_inference_multi.sh       copies its external trace interval
+    |     +-- multi_process A/B      normal user
+    +-- run_inference_single_control.sh
+          +-- multi_process          normal user
 ```
 
-Trace helper를 단독으로 사용할 때는 아래처럼 실행한다.
+Trace helper는 matrix보다 먼저 실행하고, `External VCTX trace ready` 메시지가
+나타난 뒤 matrix를 시작한다. Matrix가 끝난 뒤 Terminal 1에서 `Ctrl-C`로 종료한다.
+종료 시 helper가 `vctx_trace` 값을 복원하고 state file을 제거한다.
 
 ```bash
-# Terminal에서 인증 후 바로 trace
+# 인증 후 trace 시작, 공용 상태/log 게시
 ../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh
 
 # Orchestrator에서 foreground 인증과 background follow를 분리
@@ -82,10 +92,9 @@ Trace helper를 단독으로 사용할 때는 아래처럼 실행한다.
 ../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh --follow
 ```
 
-`--follow`는 `--authorize`와 같은 login session에서 실행한다. Runner는 trace
-process를 별도 `setsid` session으로 이동하지 않으며, helper가 dmesg producer와
-grep consumer를 직접 종료하고 `vctx_trace` 값을 복원한다. Trace 시작이 실패하면
-runner가 `dmesg-vctx.log` 마지막 20줄을 terminal에도 출력한다.
+각 case runner는 시작 시 공용 log의 line 번호를 snapshot하고 종료 시 해당 구간만
+자신의 `dmesg-vctx.log`에 복사한다. 외부 helper의 PID나 `vctx_trace` 값은 변경하지
+않으며 helper를 실행하거나 sudo 인증을 요청하는 코드도 포함하지 않는다.
 
 최신 quantum KMD/runner가 반영됐다면 각 case의 configuration 출력에 다음 두 줄이
 나타난다. 줄 자체가 없으면 target board의 application script가 이전 버전이고,
