@@ -89,7 +89,7 @@ def fw_event_name(message: str) -> str:
 
 
 def event_vctx(fields: Dict[str, Any]) -> int:
-    for key in ("vctx", "to", "owner"):
+    for key in ("vctx", "to", "requester", "owner"):
         value = fields.get(key)
         if isinstance(value, int):
             return value
@@ -169,6 +169,7 @@ def build_transfers(events: Sequence[Dict[str, Any]], t0: float) -> List[Dict[st
                 "logical_wrap": fields.get("logical_ring_wrap", 0),
                 "physical_wrap": fields.get("physical_ring_wrap", 0),
                 "device_ongoing": fields.get("device_ongoing"),
+                "quantum_commits": fields.get("quantum_commits"),
                 "commit_line": event["line"],
                 "complete_line": None,
                 "status": "open",
@@ -244,9 +245,31 @@ def lane_sort_key(lane: Dict[str, Any]) -> Tuple[int, int, int]:
 
 def summarize_events(events: Sequence[Dict[str, Any]], transfers: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     counts = Counter(event["type"] for event in events)
+    closed_quantums = [
+        event
+        for event in events
+        if event["type"] == "VCTX_QUANTUM_BEGIN"
+        and isinstance(event["fields"].get("previous_commits"), int)
+        and event["fields"].get("previous", 0) != 0
+    ]
+    quantum_commits = [event["fields"]["previous_commits"] for event in closed_quantums]
+    quantum_ages_ms = [
+        event["fields"]["previous_age_ms"]
+        for event in closed_quantums
+        if isinstance(event["fields"].get("previous_age_ms"), int)
+    ]
     return {
         "events": len(events),
         "device_switches": counts["DEVICE_SWITCH"],
+        "quantum_begins": counts["VCTX_QUANTUM_BEGIN"],
+        "quantum_requests": counts["VCTX_QUANTUM_REQUEST"],
+        "quantum_commit_avg": round(sum(quantum_commits) / len(quantum_commits), 3)
+        if quantum_commits
+        else 0,
+        "quantum_commit_max": max(quantum_commits, default=0),
+        "quantum_age_avg_ms": round(sum(quantum_ages_ms) / len(quantum_ages_ms), 3)
+        if quantum_ages_ms
+        else 0,
         "rebases": counts["CHANNEL_CURSOR_REBASE"],
         "commits": counts["TRANSFER_COMMIT"],
         "completes": counts["TRANSFER_COMPLETE"],
@@ -523,6 +546,8 @@ function renderSummary() {
     ["duration", `${formatMs(c.duration_ms)} ms`, ""],
     ["VCTX", c.vctxs.join(", ") || "none", ""],
     ["switches", k.device_switches, ""],
+    ["quantums / requests", `${k.quantum_begins} / ${k.quantum_requests}`, ""],
+    ["commits / quantum", `${k.quantum_commit_avg} avg · ${k.quantum_commit_max} max`, ""],
     ["commit / complete", `${k.commits} / ${k.completes}`, k.commits === k.completes ? "good" : "bad"],
     ["logical wraps", k.logical_wraps, k.logical_wraps ? "warn" : ""],
     ["rebase failures", k.rebase_failures, k.rebase_failures ? "bad" : "good"],
@@ -675,7 +700,7 @@ function draw() {
         `t=${formatMs(transfer.start)}..${formatMs(end)} ms duration=${formatMs(transfer.duration)} ms\n` +
         `logical=${transfer.logical_start}..${transfer.logical_last} wrap=${transfer.logical_wrap}\n` +
         `physical=${transfer.physical_start}..${transfer.physical_last} wrap=${transfer.physical_wrap}\n` +
-        `descriptors=${transfer.descriptors} age_ms=${transfer.age_ms ?? "?"}\ncommit line=${transfer.commit_line} complete line=${transfer.complete_line ?? "?"}`;
+        `descriptors=${transfer.descriptors} quantum_commits=${transfer.quantum_commits ?? "?"} age_ms=${transfer.age_ms ?? "?"}\ncommit line=${transfer.commit_line} complete line=${transfer.complete_line ?? "?"}`;
       hitRegions.push({x1, x2:x1+w, y1:y-3, y2:y+9, text:detail});
     });
   }
@@ -686,6 +711,7 @@ function draw() {
     else if (event.type === "CHANNEL_CURSOR_REBASE" && $("showRebases").checked) { show = true; color = event.fields.physical_idle_failed ? "#ff667a" : "#58d5e8"; radius = 3; }
     else if (event.type === "TRANSFER_COMPLETE" && $("showCompletes").checked) { show = true; color = colorFor(event.vctx); radius = 2; }
     else if (event.type === "DEVICE_SWITCH") { show = true; color = colorFor(event.vctx); radius = 4; }
+    else if (event.type === "VCTX_QUANTUM_REQUEST") { show = true; color = "#f6b94a"; radius = 4; }
     if (!show || event.t < viewStart || event.t > viewEnd) return;
     const x = timeToX(event.t, left, plotWidth), y = top + laneHeight + laneHeight / 2;
     ctx.fillStyle = color;
@@ -847,6 +873,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(
             f"  {case['name']}: {case['duration_ms']:.3f} ms, "
             f"switches={stats['device_switches']}, "
+            f"quantums/requests={stats['quantum_begins']}/{stats['quantum_requests']}, "
+            f"commits/quantum(avg,max)={stats['quantum_commit_avg']}/{stats['quantum_commit_max']}, "
             f"commit/complete={stats['commits']}/{stats['completes']}, "
             f"wraps={stats['logical_wraps']}, stalls={stats['stalls']}"
         )

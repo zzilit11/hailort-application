@@ -25,6 +25,8 @@ readonly WORKER_LOG="${RUN_DIR}/worker-single.log"
 readonly TRACE_LOG="${RUN_DIR}/dmesg-vctx.log"
 readonly RESULTS_LOG="${RUN_DIR}/inference-results.log"
 readonly SUMMARY_LOG="${RUN_DIR}/summary.txt"
+readonly VCTX_QUANTUM_MS_PARAMETER="/sys/module/hailo_pci/parameters/vctx_dispatch_quantum_ms"
+readonly VCTX_QUANTUM_TRANSFERS_PARAMETER="/sys/module/hailo_pci/parameters/vctx_dispatch_quantum_transfers"
 
 trace_pid=""
 
@@ -38,7 +40,7 @@ stop_trace()
 {
     if [[ -n "${trace_pid}" ]]; then
         if kill -0 "${trace_pid}" 2>/dev/null; then
-            kill -INT -- "-${trace_pid}" 2>/dev/null || true
+            kill -TERM "${trace_pid}" 2>/dev/null || true
             for _ in {1..30}; do
                 if ! kill -0 "${trace_pid}" 2>/dev/null; then
                     break
@@ -46,7 +48,7 @@ stop_trace()
                 sleep 0.1
             done
             if kill -0 "${trace_pid}" 2>/dev/null; then
-                kill -TERM -- "-${trace_pid}" 2>/dev/null || true
+                kill -KILL "${trace_pid}" 2>/dev/null || true
             fi
         fi
         wait "${trace_pid}" 2>/dev/null || true
@@ -92,6 +94,17 @@ require_nonnegative_integer()
     fi
 }
 
+read_module_parameter()
+{
+    local path=$1
+
+    if [[ -r "${path}" ]]; then
+        cat "${path}" 2>/dev/null || echo "unavailable"
+    else
+        echo "unavailable"
+    fi
+}
+
 require_file "multi_process executable" "${EXECUTABLE}"
 require_file "HEF" "${MODEL}"
 require_file "image" "${IMAGE}"
@@ -112,6 +125,8 @@ fi
 command -v timeout >/dev/null 2>&1 || { echo "ERROR: GNU timeout is required." >&2; exit 1; }
 
 mkdir -p "${RUN_DIR}"
+vctx_quantum_ms="$(read_module_parameter "${VCTX_QUANTUM_MS_PARAMETER}")"
+vctx_quantum_transfers="$(read_module_parameter "${VCTX_QUANTUM_TRANSFERS_PARAMETER}")"
 {
     echo "run_id=${RUN_ID}"
     echo "mode=single-process-control"
@@ -123,21 +138,23 @@ mkdir -p "${RUN_DIR}"
     echo "multi_process_service=0"
     echo "vctx_trace=${ENABLE_VCTX_TRACE}"
     echo "vctx_trace_preauthorized=${VCTX_TRACE_PREAUTHORIZED}"
+    echo "vctx_dispatch_quantum_ms=${vctx_quantum_ms}"
+    echo "vctx_dispatch_quantum_transfers=${vctx_quantum_transfers}"
 } | tee "${RUN_DIR}/configuration.txt"
 
 if [[ "${ENABLE_VCTX_TRACE}" == "1" ]]; then
     require_file "vctx trace helper" "${TRACE_HELPER}"
     [[ -x "${TRACE_HELPER}" ]] || { echo "ERROR: trace helper is not executable: ${TRACE_HELPER}" >&2; exit 1; }
-    command -v setsid >/dev/null 2>&1 || { echo "ERROR: setsid is required." >&2; exit 1; }
     if [[ "${VCTX_TRACE_PREAUTHORIZED}" != "1" ]]; then
         "${TRACE_HELPER}" --authorize
     fi
-    setsid "${TRACE_HELPER}" --follow >"${TRACE_LOG}" 2>&1 &
+    "${TRACE_HELPER}" --follow >"${TRACE_LOG}" 2>&1 &
     trace_pid=$!
     sleep 0.5
     if ! kill -0 "${trace_pid}" 2>/dev/null; then
         wait "${trace_pid}" || true
         echo "ERROR: vctx dmesg tracing failed to start. See ${TRACE_LOG}" >&2
+        tail -n 20 "${TRACE_LOG}" >&2 || true
         exit 1
     fi
 elif [[ "${ENABLE_VCTX_TRACE}" != "0" ]]; then
@@ -180,11 +197,17 @@ fi
 stall_warning_count=0
 ring_wrap_count=0
 cursor_rebase_failure_count=0
+device_switch_count=0
+quantum_begin_count=0
+quantum_request_count=0
 score_validation_failure_count="$(grep -c 'inference-result-summary.*score_validation=FAIL' "${WORKER_LOG}" || true)"
 if [[ "${ENABLE_VCTX_TRACE}" == "1" && -f "${TRACE_LOG}" ]]; then
     stall_warning_count="$(grep -c 'TRANSFER_STALL_WARN' "${TRACE_LOG}" || true)"
     ring_wrap_count="$(grep -c 'TRANSFER_COMMIT.*logical_ring_wrap=1' "${TRACE_LOG}" || true)"
     cursor_rebase_failure_count="$(grep -c 'CHANNEL_CURSOR_REBASE.*physical_idle_failed=1' "${TRACE_LOG}" || true)"
+    device_switch_count="$(grep -c 'DEVICE_SWITCH' "${TRACE_LOG}" || true)"
+    quantum_begin_count="$(grep -c 'VCTX_QUANTUM_BEGIN' "${TRACE_LOG}" || true)"
+    quantum_request_count="$(grep -c 'VCTX_QUANTUM_REQUEST' "${TRACE_LOG}" || true)"
 fi
 if (( cursor_rebase_failure_count != 0 || stall_warning_count != 0 )); then
     transport_result="FAIL"
@@ -205,6 +228,9 @@ fi
     echo "ring_wrap_commits=${ring_wrap_count}"
     echo "cursor_rebase_failures=${cursor_rebase_failure_count}"
     echo "stall_warnings=${stall_warning_count}"
+    echo "device_switches=${device_switch_count}"
+    echo "quantum_begins=${quantum_begin_count}"
+    echo "quantum_requests=${quantum_request_count}"
     echo "score_validation_failures=${score_validation_failure_count}"
     echo "worker_log=${WORKER_LOG}"
     echo "inference_results_log=${RESULTS_LOG}"

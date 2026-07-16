@@ -39,6 +39,20 @@ script는 다음 순서로 동작한다.
 4. 두 worker의 `ready.A`, `ready.B`를 확인한 후 공통 start barrier를 해제한다.
 5. 두 process의 종료 코드, 추론 시간 중첩 및 KMD VCTX 개수를 검사한다.
 
+KMD dispatch는 경쟁 process가 있을 때 현재 VCTX를 기본 `50ms` 또는 commit
+`64개` 중 먼저 도달한 경계까지 유지한다. 같은 VCTX의 transfer는 채널 queue의
+다른 VCTX 항목을 건너뛸 수 있지만, 같은 VCTX 내부 FIFO는 유지한다. Quantum이
+닫히면 신규 transfer admission을 중단하고 이미 commit된 transfer가 모두 끝난
+후에만 firmware VCTX를 전환한다.
+
+두 module parameter는 시험 전에 조정할 수 있다. 둘 다 `0`이면 기존의 즉시 전환
+정책으로 돌아간다.
+
+```bash
+echo 50 | sudo tee /sys/module/hailo_pci/parameters/vctx_dispatch_quantum_ms
+echo 64 | sudo tee /sys/module/hailo_pci/parameters/vctx_dispatch_quantum_transfers
+```
+
 Matrix 시험도 일반 사용자로 실행한다.
 
 ```bash
@@ -66,6 +80,20 @@ Trace helper를 단독으로 사용할 때는 아래처럼 실행한다.
 # Orchestrator에서 foreground 인증과 background follow를 분리
 ../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh --authorize
 ../hailort-drivers/linux/pcie/tools/hailo_vctx_trace.sh --follow
+```
+
+`--follow`는 `--authorize`와 같은 login session에서 실행한다. Runner는 trace
+process를 별도 `setsid` session으로 이동하지 않으며, helper가 dmesg producer와
+grep consumer를 직접 종료하고 `vctx_trace` 값을 복원한다. Trace 시작이 실패하면
+runner가 `dmesg-vctx.log` 마지막 20줄을 terminal에도 출력한다.
+
+최신 quantum KMD/runner가 반영됐다면 각 case의 configuration 출력에 다음 두 줄이
+나타난다. 줄 자체가 없으면 target board의 application script가 이전 버전이고,
+값이 `unavailable`이면 최신 `hailo_pci` module이 load되지 않은 상태다.
+
+```text
+vctx_dispatch_quantum_ms=50
+vctx_dispatch_quantum_transfers=64
 ```
 
 기본 시험은 두 process에서 동일한 ResNet50 HEF와 입력 이미지를 각각 200 frame
@@ -119,6 +147,11 @@ logs/multi-process-YYYYmmdd-HHMMSS-PID/
 - trace가 활성화된 경우 `CHANNEL_CURSOR_REBASE physical_idle_failed=1` 및
   `TRANSFER_STALL_WARN`이 없다.
 
+`configuration.txt`에는 실제 module의 quantum parameter가, `summary.txt`에는
+`device_switches`, `quantum_begins`, `quantum_requests`가 기록된다. dmesg의
+`VCTX_QUANTUM_REQUEST`는 경쟁자가 quantum을 닫은 시점이고,
+`VCTX_QUANTUM_BEGIN`은 drain과 firmware 전환이 끝나 새 owner가 시작한 시점이다.
+
 `transport_result`는 모든 frame의 input/output 전송 완료, process 실행 중첩,
 VCTX/cursor/stall 조건을 나타낸다. `classification_result`는 output decode,
 frame 완료 및 Top1 계산 성공 여부를 나타낸다. `score_result`는 기존 log
@@ -148,6 +181,7 @@ python3 tools/vctx_timeline.py RUN_DIRECTORY \
 HTML에는 다음 정보가 포함된다.
 
 - VCTX별 device ownership과 firmware switch
+- quantum request/begin 및 quantum별 누적 commit 수
 - engine/channel별 transfer commit-to-complete 구간
 - logical/physical descriptor 위치와 ring-wrap 강조
 - cursor rebase, stall, reject, abort event
