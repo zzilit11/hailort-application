@@ -78,12 +78,19 @@ def read_key_value_file(path: Path) -> Dict[str, Any]:
 
 def fw_event_name(message: str) -> str:
     lower = message.lower()
+    if lower.startswith("close pause failed"):
+        return "FW_CLOSE_PAUSE_FAILED"
+    if lower.startswith("notification queue dropped"):
+        return "FW_NOTIFICATION_DROPPED"
     if lower.startswith("global initialization"):
         return "FW_GLOBAL_INIT"
-    if lower.startswith("suppress repeated global reset"):
-        return "FW_SUPPRESS_RESET"
-    if lower.startswith("suppress repeated global clear"):
-        return "FW_SUPPRESS_CLEAR"
+    if lower.startswith("suppress"):
+        if "runtime reset" in lower:
+            return "FW_SUPPRESS_RUNTIME_RESET"
+        if "reset" in lower:
+            return "FW_SUPPRESS_RESET"
+        if "clear" in lower:
+            return "FW_SUPPRESS_CLEAR"
     first = message.split(None, 1)[0] if message else "UNKNOWN"
     return "FW_" + re.sub(r"[^A-Za-z0-9]+", "_", first).upper()
 
@@ -146,52 +153,222 @@ def transfer_key(event: Dict[str, Any]) -> Optional[Tuple[int, int, int, int]]:
 
 def build_transfers(events: Sequence[Dict[str, Any]], t0: float) -> List[Dict[str, Any]]:
     transfers: List[Dict[str, Any]] = []
-    open_transfers: Dict[Tuple[int, int, int, int], Dict[str, Any]] = {}
+    transfers_by_key: Dict[Tuple[int, int, int, int], Dict[str, Any]] = {}
+    lifecycle_events = {
+        "TRANSFER_QUEUE",
+        "TRANSFER_ADMIT",
+        "TRANSFER_COMMIT",
+        "TRANSFER_COMPLETE",
+        "TRANSFER_CANCEL",
+        "TRANSFER_REJECT",
+        "TRANSFER_CURSOR_REJECT",
+        "TRANSFER_ABORT",
+    }
+
     for event in events:
-        if event["type"] == "TRANSFER_COMMIT":
-            key = transfer_key(event)
-            if key is None:
-                continue
-            fields = event["fields"]
+        event_type = event["type"]
+        if event_type not in lifecycle_events:
+            continue
+        key = transfer_key(event)
+        if key is None:
+            continue
+        timestamp_ms = (event["time_s"] - t0) * 1000.0
+        transfer = transfers_by_key.get(key)
+        if transfer is None:
             transfer = {
                 "vctx": key[0],
                 "seq": key[1],
                 "engine": key[2],
                 "channel": key[3],
-                "start": (event["time_s"] - t0) * 1000.0,
+                "queued": None,
+                "admitted": None,
+                "start": None,
                 "end": None,
+                "queue_wait": None,
+                "admit_wait": None,
+                "admission_latency": None,
                 "duration": None,
-                "descriptors": fields.get("descriptors"),
-                "logical_start": fields.get("logical_start"),
-                "logical_last": fields.get("logical_last"),
-                "physical_start": fields.get("physical_start"),
-                "physical_last": fields.get("physical_last"),
-                "logical_wrap": fields.get("logical_ring_wrap", 0),
-                "physical_wrap": fields.get("physical_ring_wrap", 0),
-                "device_ongoing": fields.get("device_ongoing"),
-                "quantum_commits": fields.get("quantum_commits"),
-                "commit_line": event["line"],
+                "descriptors": None,
+                "logical_start": None,
+                "logical_last": None,
+                "physical_start": None,
+                "physical_last": None,
+                "logical_wrap": 0,
+                "physical_wrap": 0,
+                "device_ongoing": None,
+                "quantum_commits": None,
+                "queue_line": None,
+                "admit_line": None,
+                "commit_line": None,
                 "complete_line": None,
-                "status": "open",
-                "message": event["message"],
+                "terminal_line": None,
+                "terminal_type": None,
+                "status": "observed",
+                "message": "",
             }
             transfers.append(transfer)
-            open_transfers[key] = transfer
-        elif event["type"] == "TRANSFER_COMPLETE":
-            key = transfer_key(event)
-            if key is None:
-                continue
-            transfer = open_transfers.pop(key, None)
-            if transfer is None:
-                continue
-            end = (event["time_s"] - t0) * 1000.0
-            transfer["end"] = end
-            transfer["duration"] = max(0.0, end - transfer["start"])
+            transfers_by_key[key] = transfer
+
+        fields = event["fields"]
+        transfer["message"] = event["message"]
+        if event_type == "TRANSFER_QUEUE":
+            transfer["queued"] = timestamp_ms
+            transfer["queue_line"] = event["line"]
+            transfer["status"] = "queued"
+        elif event_type == "TRANSFER_ADMIT":
+            transfer["admitted"] = timestamp_ms
+            transfer["admit_line"] = event["line"]
+            transfer["status"] = "admitted"
+        elif event_type == "TRANSFER_COMMIT":
+            transfer["start"] = timestamp_ms
+            transfer["descriptors"] = fields.get("descriptors")
+            transfer["logical_start"] = fields.get("logical_start")
+            transfer["logical_last"] = fields.get("logical_last")
+            transfer["physical_start"] = fields.get("physical_start")
+            transfer["physical_last"] = fields.get("physical_last")
+            transfer["logical_wrap"] = fields.get("logical_ring_wrap", 0)
+            transfer["physical_wrap"] = fields.get("physical_ring_wrap", 0)
+            transfer["device_ongoing"] = fields.get("device_ongoing")
+            transfer["quantum_commits"] = fields.get("quantum_commits")
+            transfer["commit_line"] = event["line"]
+            transfer["status"] = "open"
+        elif event_type == "TRANSFER_COMPLETE":
+            transfer["end"] = timestamp_ms
             transfer["complete_line"] = event["line"]
-            transfer["status"] = "complete"
+            transfer["terminal_line"] = event["line"]
+            transfer["terminal_type"] = event_type
             transfer["completion_status"] = event["fields"].get("status")
             transfer["age_ms"] = event["fields"].get("age_ms")
+            transfer["published"] = event["fields"].get("published")
+            transfer["status"] = (
+                "complete"
+                if fields.get("published", 1) == 1 and fields.get("status", 0) == 0
+                else "dropped"
+            )
+        elif event_type == "TRANSFER_ABORT":
+            transfer["end"] = timestamp_ms
+            transfer["terminal_line"] = event["line"]
+            transfer["terminal_type"] = event_type
+            transfer["status"] = "abort"
+        elif event_type == "TRANSFER_CANCEL":
+            transfer["end"] = timestamp_ms
+            transfer["terminal_line"] = event["line"]
+            transfer["terminal_type"] = event_type
+            transfer["status"] = "cancel"
+        elif event_type in {"TRANSFER_REJECT", "TRANSFER_CURSOR_REJECT"}:
+            transfer["end"] = timestamp_ms
+            transfer["terminal_line"] = event["line"]
+            transfer["terminal_type"] = event_type
+            transfer["status"] = "reject"
+
+    for transfer in transfers:
+        queued = transfer.get("queued")
+        admitted = transfer.get("admitted")
+        committed = transfer.get("start")
+        ended = transfer.get("end")
+        if isinstance(queued, (int, float)) and isinstance(admitted, (int, float)):
+            transfer["queue_wait"] = max(0.0, admitted - queued)
+        if isinstance(admitted, (int, float)) and isinstance(committed, (int, float)):
+            transfer["admit_wait"] = max(0.0, committed - admitted)
+        if isinstance(queued, (int, float)) and isinstance(committed, (int, float)):
+            transfer["admission_latency"] = max(0.0, committed - queued)
+        if isinstance(committed, (int, float)) and isinstance(ended, (int, float)):
+            transfer["duration"] = max(0.0, ended - committed)
+        points = [
+            value
+            for value in (queued, admitted, committed, ended)
+            if isinstance(value, (int, float))
+        ]
+        transfer["lifecycle_start"] = min(points) if points else 0.0
+        transfer["lifecycle_end"] = max(points) if points else transfer["lifecycle_start"]
+
+    transfers.sort(
+        key=lambda transfer: (
+            transfer["lifecycle_start"],
+            transfer["vctx"],
+            transfer["seq"],
+        )
+    )
     return transfers
+
+
+def build_owner_segments(
+    events: Sequence[Dict[str, Any]], duration_ms: float
+) -> List[Dict[str, Any]]:
+    """Build physical FW-owner intervals and end them at the matching FW pause."""
+
+    segments: List[Dict[str, Any]] = []
+    active: Optional[Dict[str, Any]] = None
+    use_device_switch = any(event["type"] == "DEVICE_SWITCH" for event in events)
+    start_types = {"DEVICE_SWITCH"} if use_device_switch else {"FW_ACTIVATE"}
+
+    def close_active(end: float, reason: str, line: int) -> None:
+        nonlocal active
+        if active is None:
+            return
+        active["end"] = max(active["t"], end)
+        active["end_reason"] = reason
+        active["end_line"] = line
+        active = None
+
+    for event in events:
+        event_type = event["type"]
+        if event_type in start_types and event["vctx"] > 0:
+            close_active(event["t"], "switch", event["line"])
+            active = {
+                "t": event["t"],
+                "end": duration_ms,
+                "vctx": event["vctx"],
+                "epoch": event["fields"].get("dispatch_epoch", event["fields"].get("epoch")),
+                "line": event["line"],
+                "end_line": None,
+                "end_reason": "trace-end",
+                "message": event["message"],
+            }
+            segments.append(active)
+        elif event_type == "FW_PAUSE" and active is not None:
+            if event["vctx"] == active["vctx"]:
+                close_active(event["t"], "fw-pause", event["line"])
+        elif event_type == "VCTX_CLOSE_BEGIN" and active is not None:
+            if event["vctx"] == active["vctx"]:
+                close_active(event["t"], "vctx-close", event["line"])
+
+    if active is not None:
+        close_active(duration_ms, "trace-end", events[-1]["line"] if events else 0)
+    return segments
+
+
+def build_quantum_requests(events: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Pair each next-owner request with the quantum begin that services it."""
+
+    requests: List[Dict[str, Any]] = []
+    pending: Dict[int, List[Dict[str, Any]]] = {}
+    for event in events:
+        if event["type"] == "VCTX_QUANTUM_REQUEST":
+            request = {
+                "t": event["t"],
+                "begin": None,
+                "wait_ms": None,
+                "requester": event["vctx"],
+                "owner": event["fields"].get("owner"),
+                "commits": event["fields"].get("commits"),
+                "device_ongoing": event["fields"].get("device_ongoing"),
+                "time_expired": event["fields"].get("time_expired"),
+                "transfer_expired": event["fields"].get("transfer_expired"),
+                "line": event["line"],
+                "begin_line": None,
+                "message": event["message"],
+            }
+            requests.append(request)
+            pending.setdefault(event["vctx"], []).append(request)
+        elif event["type"] == "VCTX_QUANTUM_BEGIN":
+            waiting = pending.get(event["vctx"], [])
+            if waiting:
+                request = waiting.pop(0)
+                request["begin"] = event["t"]
+                request["wait_ms"] = max(0.0, event["t"] - request["t"])
+                request["begin_line"] = event["line"]
+    return requests
 
 
 def parse_worker_log(path: Path) -> Dict[str, Any]:
@@ -243,7 +420,12 @@ def lane_sort_key(lane: Dict[str, Any]) -> Tuple[int, int, int]:
     return (lane["vctx"], lane["engine"], lane["channel"])
 
 
-def summarize_events(events: Sequence[Dict[str, Any]], transfers: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+def summarize_events(
+    events: Sequence[Dict[str, Any]],
+    transfers: Sequence[Dict[str, Any]],
+    owner_segments: Sequence[Dict[str, Any]],
+    quantum_requests: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
     counts = Counter(event["type"] for event in events)
     closed_quantums = [
         event
@@ -258,9 +440,39 @@ def summarize_events(events: Sequence[Dict[str, Any]], transfers: Sequence[Dict[
         for event in closed_quantums
         if isinstance(event["fields"].get("previous_age_ms"), int)
     ]
+    admission_latencies = [
+        transfer["admission_latency"]
+        for transfer in transfers
+        if isinstance(transfer.get("admission_latency"), (int, float))
+    ]
+    transfer_durations = [
+        transfer["duration"]
+        for transfer in transfers
+        if transfer.get("status") == "complete"
+        and isinstance(transfer.get("duration"), (int, float))
+    ]
+    request_waits = [
+        request["wait_ms"]
+        for request in quantum_requests
+        if isinstance(request.get("wait_ms"), (int, float))
+    ]
+    owner_active_ms = sum(
+        max(0.0, segment["end"] - segment["t"]) for segment in owner_segments
+    )
+    if owner_segments:
+        owner_window_ms = max(0.0, owner_segments[-1]["end"] - owner_segments[0]["t"])
+    else:
+        owner_window_ms = 0.0
+
+    def average(values: Sequence[float]) -> float:
+        return round(sum(values) / len(values), 6) if values else 0.0
+
     return {
         "events": len(events),
+        "controller_aborts": counts["CONTROLLER_ABORT_BEGIN"],
         "device_switches": counts["DEVICE_SWITCH"],
+        "fw_activations": counts["FW_ACTIVATE"],
+        "fw_pauses": counts["FW_PAUSE"],
         "quantum_begins": counts["VCTX_QUANTUM_BEGIN"],
         "quantum_requests": counts["VCTX_QUANTUM_REQUEST"],
         "quantum_commit_avg": round(sum(quantum_commits) / len(quantum_commits), 3)
@@ -270,9 +482,28 @@ def summarize_events(events: Sequence[Dict[str, Any]], transfers: Sequence[Dict[
         "quantum_age_avg_ms": round(sum(quantum_ages_ms) / len(quantum_ages_ms), 3)
         if quantum_ages_ms
         else 0,
+        "quantum_request_wait_avg_ms": average(request_waits),
+        "quantum_request_wait_max_ms": max(request_waits, default=0.0),
+        "quantum_requests_unmatched": sum(
+            request.get("begin") is None for request in quantum_requests
+        ),
+        "quantum_time_expired": sum(
+            request.get("time_expired") == 1 for request in quantum_requests
+        ),
+        "quantum_transfer_expired": sum(
+            request.get("transfer_expired") == 1 for request in quantum_requests
+        ),
         "rebases": counts["CHANNEL_CURSOR_REBASE"],
+        "cursor_saves": counts["CHANNEL_CURSOR_SAVE"],
+        "channel_switches": counts["CHANNEL_SWITCH"],
+        "queues": counts["TRANSFER_QUEUE"],
+        "admits": counts["TRANSFER_ADMIT"],
         "commits": counts["TRANSFER_COMMIT"],
         "completes": counts["TRANSFER_COMPLETE"],
+        "admission_latency_avg_ms": average(admission_latencies),
+        "admission_latency_max_ms": max(admission_latencies, default=0.0),
+        "transfer_duration_avg_ms": average(transfer_durations),
+        "transfer_duration_max_ms": max(transfer_durations, default=0.0),
         "logical_wraps": sum(bool(transfer.get("logical_wrap")) for transfer in transfers),
         "physical_wraps": sum(bool(transfer.get("physical_wrap")) for transfer in transfers),
         "rebase_failures": sum(
@@ -281,10 +512,38 @@ def summarize_events(events: Sequence[Dict[str, Any]], transfers: Sequence[Dict[
             for event in events
         ),
         "stalls": counts["TRANSFER_STALL_WARN"],
-        "rejects": counts["TRANSFER_REJECT"] + counts["TRANSFER_CURSOR_REJECT"],
-        "aborts": counts["TRANSFER_ABORT"],
-        "open_transfers": sum(transfer["status"] != "complete" for transfer in transfers),
+        "rejects": sum(transfer["status"] == "reject" for transfer in transfers),
+        "aborts": sum(transfer["status"] == "abort" for transfer in transfers),
+        "cancels": sum(transfer["status"] == "cancel" for transfer in transfers),
+        "drops": sum(transfer["status"] == "dropped" for transfer in transfers),
+        "open_transfers": sum(
+            transfer["status"] in {"observed", "queued", "admitted", "open"}
+            for transfer in transfers
+        ),
+        "owner_active_ms": round(owner_active_ms, 6),
+        "owner_gap_ms": round(max(0.0, owner_window_ms - owner_active_ms), 6),
     }
+
+
+def compare_trace_summary(summary: Dict[str, Any], stats: Dict[str, Any]) -> List[str]:
+    comparisons = (
+        ("trace_queue_events", "queues"),
+        ("trace_commit_events", "commits"),
+        ("trace_complete_events", "completes"),
+        ("device_switches", "device_switches"),
+        ("quantum_begins", "quantum_begins"),
+        ("quantum_requests", "quantum_requests"),
+        ("ring_wrap_commits", "logical_wraps"),
+        ("cursor_rebase_failures", "rebase_failures"),
+        ("stall_warnings", "stalls"),
+    )
+    mismatches: List[str] = []
+    for summary_key, stats_key in comparisons:
+        expected = summary.get(summary_key)
+        actual = stats.get(stats_key)
+        if isinstance(expected, int) and expected != actual:
+            mismatches.append(f"{summary_key}={expected}, parsed {stats_key}={actual}")
+    return mismatches
 
 
 def parse_run(run_dir: Path, display_name: str, include_wait_events: bool) -> Dict[str, Any]:
@@ -295,17 +554,9 @@ def parse_run(run_dir: Path, display_name: str, include_wait_events: bool) -> Di
 
     t0 = events[0]["time_s"]
     t1 = events[-1]["time_s"]
+    transfers = build_transfers(events, t0)
     for event in events:
         event["t"] = round((event.pop("time_s") - t0) * 1000.0, 6)
-
-    # build_transfers expects the original seconds. Reconstruct a minimal view
-    # from relative milliseconds to keep a single representation in the HTML.
-    transfer_events: List[Dict[str, Any]] = []
-    for event in events:
-        cloned = dict(event)
-        cloned["time_s"] = t0 + (event["t"] / 1000.0)
-        transfer_events.append(cloned)
-    transfers = build_transfers(transfer_events, t0)
 
     lanes_by_key: Dict[Tuple[int, int, int], Dict[str, Any]] = {}
     for transfer in transfers:
@@ -320,20 +571,17 @@ def parse_run(run_dir: Path, display_name: str, include_wait_events: bool) -> Di
             },
         )
 
-    switches = [
-        {
-            "t": event["t"],
-            "vctx": event["vctx"],
-            "epoch": event["fields"].get("dispatch_epoch"),
-            "line": event["line"],
-            "message": event["message"],
-        }
-        for event in events
-        if event["type"] == "DEVICE_SWITCH"
-    ]
     duration_ms = max(0.001, (t1 - t0) * 1000.0)
-    for index, switch in enumerate(switches):
-        switch["end"] = switches[index + 1]["t"] if index + 1 < len(switches) else duration_ms
+    owner_segments = build_owner_segments(events, duration_ms)
+    quantum_requests = build_quantum_requests(events)
+    stats = summarize_events(events, transfers, owner_segments, quantum_requests)
+    summary = read_key_value_file(run_dir / "summary.txt")
+    trace_mismatches = compare_trace_summary(summary, stats)
+    stats["trace_summary_available"] = any(
+        isinstance(summary.get(key), int)
+        for key in ("trace_queue_events", "trace_commit_events", "trace_complete_events")
+    )
+    stats["trace_summary_match"] = stats["trace_summary_available"] and not trace_mismatches
 
     worker_logs = sorted(run_dir.glob("worker-*.log"))
     workers = [parse_worker_log(path) for path in worker_logs]
@@ -347,11 +595,13 @@ def parse_run(run_dir: Path, display_name: str, include_wait_events: bool) -> Di
         "duration_ms": duration_ms,
         "events": events,
         "transfers": transfers,
-        "switches": switches,
+        "switches": owner_segments,
+        "quantum_request_intervals": quantum_requests,
         "lanes": sorted(lanes_by_key.values(), key=lane_sort_key),
         "vctxs": vctxs,
-        "stats": summarize_events(events, transfers),
-        "summary": read_key_value_file(run_dir / "summary.txt"),
+        "stats": stats,
+        "summary": summary,
+        "trace_mismatches": trace_mismatches,
         "configuration": read_key_value_file(run_dir / "configuration.txt"),
         "workers": workers,
         "ignored_non_vctx_lines": ignored_lines,
@@ -461,6 +711,7 @@ td.message { font-family: ui-monospace, monospace; white-space: nowrap; }
     <label>Zoom <input id="zoom" type="range" min="1" max="100" value="1" step="1"> <span id="zoomValue">1×</span></label>
     <label>Pan <input id="pan" type="range" min="0" max="1000" value="0" step="1"></label>
     <label class="check"><input id="showTransfers" type="checkbox" checked> transfers</label>
+    <label class="check"><input id="showQueueWait" type="checkbox" checked> queue wait</label>
     <label class="check"><input id="showSwitches" type="checkbox" checked> device owner</label>
     <label class="check"><input id="showRebases" type="checkbox"> rebases</label>
     <label class="check"><input id="showCompletes" type="checkbox"> completion points</label>
@@ -472,7 +723,7 @@ td.message { font-family: ui-monospace, monospace; white-space: nowrap; }
   <div class="legend" id="legend"></div>
   <section class="timeline-panel">
     <div class="timeline-head">
-      Drag to pan · mouse wheel to zoom · hover for details · red outline means logical ring-wrap
+      Drag to pan · mouse wheel to zoom · dashed line is QUEUE→COMMIT · owner gaps are FW pause/activation time
     </div>
     <div id="canvasWrap">
       <canvas id="timeline"></canvas>
@@ -502,7 +753,8 @@ td.message { font-family: ui-monospace, monospace; white-space: nowrap; }
 "use strict";
 const DATA = __DATA__;
 const COLORS = ["#6aa9ff", "#d481ff", "#3ddc97", "#ff9f5a", "#58d5e8", "#f56fb3", "#b1d66b", "#ffcc66"];
-const ERROR_TYPES = new Set(["TRANSFER_STALL_WARN", "TRANSFER_REJECT", "TRANSFER_CURSOR_REJECT", "TRANSFER_ABORT"]);
+const ERROR_TYPES = new Set(["TRANSFER_STALL_WARN", "TRANSFER_REJECT", "TRANSFER_CURSOR_REJECT", "TRANSFER_ABORT", "TRANSFER_DENY", "FW_CLOSE_PAUSE_FAILED", "FW_NOTIFICATION_DROPPED"]);
+const CANCEL_TYPES = new Set(["TRANSFER_CANCEL"]);
 const $ = id => document.getElementById(id);
 const canvas = $("timeline");
 const ctx = canvas.getContext("2d");
@@ -526,6 +778,7 @@ function colorFor(vctx) {
 }
 function statusClass(value) { return value === "PASS" ? "PASS" : value === "FAIL" ? "FAIL" : ""; }
 function formatMs(value) {
+  if (value === null || value === undefined || value === "") return "—";
   const number = Number(value);
   if (!Number.isFinite(number)) return "—";
   if (Math.abs(number) >= 1000) return number.toFixed(1);
@@ -539,19 +792,26 @@ function card(key, value, cls="") {
 function renderSummary() {
   const c = currentCase(), s = c.summary, k = c.stats;
   const classification = s.classification_result ?? s.score_result ?? "n/a";
+  const traceMatch = !k.trace_summary_available ? "n/a" : k.trace_summary_match ? "PASS" : "FAIL";
   const items = [
     ["overall", s.result ?? "n/a", statusClass(s.result)],
     ["transport", s.transport_result ?? "n/a", statusClass(s.transport_result)],
     ["classification", classification, statusClass(classification)],
+    ["trace summary", traceMatch, statusClass(traceMatch)],
     ["duration", `${formatMs(c.duration_ms)} ms`, ""],
     ["VCTX", c.vctxs.join(", ") || "none", ""],
     ["switches", k.device_switches, ""],
     ["quantums / requests", `${k.quantum_begins} / ${k.quantum_requests}`, ""],
     ["commits / quantum", `${k.quantum_commit_avg} avg · ${k.quantum_commit_max} max`, ""],
-    ["commit / complete", `${k.commits} / ${k.completes}`, k.commits === k.completes ? "good" : "bad"],
+    ["request→quantum", `${formatMs(k.quantum_request_wait_avg_ms)} avg · ${formatMs(k.quantum_request_wait_max_ms)} max ms`, k.quantum_requests_unmatched ? "bad" : ""],
+    ["queue / admit / commit / complete", `${k.queues} / ${k.admits} / ${k.commits} / ${k.completes}`, k.queues === k.admits && k.admits === k.commits && k.commits === k.completes ? "good" : "bad"],
+    ["QUEUE→COMMIT", `${formatMs(k.admission_latency_avg_ms)} avg · ${formatMs(k.admission_latency_max_ms)} max ms`, ""],
+    ["COMMIT→COMPLETE", `${formatMs(k.transfer_duration_avg_ms)} avg · ${formatMs(k.transfer_duration_max_ms)} max ms`, ""],
+    ["owner active / gap", `${formatMs(k.owner_active_ms)} / ${formatMs(k.owner_gap_ms)} ms`, k.owner_gap_ms ? "warn" : ""],
     ["logical wraps", k.logical_wraps, k.logical_wraps ? "warn" : ""],
+    ["physical wraps", k.physical_wraps, k.physical_wraps ? "warn" : ""],
     ["rebase failures", k.rebase_failures, k.rebase_failures ? "bad" : "good"],
-    ["stall / reject / abort", `${k.stalls} / ${k.rejects} / ${k.aborts}`, (k.stalls+k.rejects+k.aborts) ? "bad" : "good"],
+    ["stall / reject / abort / open", `${k.stalls} / ${k.rejects} / ${k.aborts} / ${k.open_transfers}`, (k.stalls+k.rejects+k.aborts+k.open_transfers) ? "bad" : "good"],
   ];
   $("summaryCards").innerHTML = items.map(item => card(...item)).join("");
   $("workerCards").innerHTML = c.workers.map(worker => {
@@ -571,6 +831,7 @@ function renderSummary() {
       </div></div>`;
   }).join("");
   $("legend").innerHTML = c.vctxs.map(vctx => `<span><i class="swatch" style="background:${colorFor(vctx)}"></i>VCTX ${vctx}</span>`).join("") +
+    `<span><i class="swatch" style="background:#93a4bd"></i>dashed: queued</span>` +
     `<span><i class="swatch" style="background:#ff667a"></i>wrap/error</span>`;
 }
 
@@ -672,46 +933,89 @@ function draw() {
         ctx.fillStyle = "#08101e";
         ctx.fillText(`V${segment.vctx}`, x1 + 4, y + (laneHeight - 14) / 2);
       }
-      hitRegions.push({x1, x2, y1:y, y2:y+laneHeight-14, text:`DEVICE_SWITCH\nVCTX ${segment.vctx}\nepoch=${segment.epoch}\nt=${formatMs(segment.t)} ms\n${segment.message}`});
+      hitRegions.push({x1, x2, y1:y, y2:y+laneHeight-14, text:`DEVICE OWNER\nVCTX ${segment.vctx}\nepoch=${segment.epoch}\nt=${formatMs(segment.t)}..${formatMs(segment.end)} ms\nend=${segment.end_reason} line=${segment.line}..${segment.end_line ?? "?"}\n${segment.message}`});
+    });
+    c.quantum_request_intervals.forEach(request => {
+      if (request.begin === null || request.begin < viewStart || request.t > viewEnd) return;
+      const x1 = timeToX(Math.max(request.t, viewStart), left, plotWidth);
+      const x2 = timeToX(Math.min(request.begin, viewEnd), left, plotWidth);
+      const y = top + laneHeight + laneHeight / 2;
+      ctx.strokeStyle = "#f6b94a";
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(Math.max(x1 + 1, x2), y); ctx.stroke();
+      ctx.lineWidth = 1;
+      hitRegions.push({x1, x2:Math.max(x1+3,x2), y1:y-5, y2:y+5, text:`QUANTUM REQUEST\nowner=${request.owner} requester=${request.requester}\nwait=${formatMs(request.wait_ms)} ms device_ongoing=${request.device_ongoing}\nthreshold: time=${request.time_expired} transfers=${request.transfer_expired}\nline=${request.line}..${request.begin_line ?? "?"}\n${request.message}`});
     });
   }
 
   const laneIndex = new Map(c.lanes.map((lane, index) => [`${lane.vctx}/${lane.engine}/${lane.channel}`, index + 2]));
   if ($("showTransfers").checked) {
     c.transfers.forEach(transfer => {
-      const end = transfer.end ?? transfer.start;
-      if (end < viewStart || transfer.start > viewEnd) return;
+      const lifecycleStart = transfer.lifecycle_start;
+      const lifecycleEnd = transfer.lifecycle_end;
+      if (lifecycleStart === null || lifecycleEnd < viewStart || lifecycleStart > viewEnd) return;
       const index = laneIndex.get(`${transfer.vctx}/${transfer.engine}/${transfer.channel}`);
       if (index === undefined) return;
-      const x1 = timeToX(Math.max(transfer.start, viewStart), left, plotWidth);
-      const x2 = timeToX(Math.min(Math.max(end, transfer.start + .01), viewEnd), left, plotWidth);
       const sub = Number(transfer.seq) % 4;
       const y = top + index * laneHeight + 5 + sub * 8;
-      const w = Math.max(2, x2 - x1);
-      ctx.fillStyle = transfer.status === "complete" ? colorFor(transfer.vctx) : "#ff667a";
-      ctx.fillRect(x1, y, w, 6);
-      if (transfer.logical_wrap) {
-        ctx.strokeStyle = "#ff667a";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x1 - 1, y - 2, w + 2, 10);
-        ctx.lineWidth = 1;
+      let hitX1 = timeToX(Math.max(lifecycleStart, viewStart), left, plotWidth);
+      let hitX2 = timeToX(Math.min(Math.max(lifecycleEnd, lifecycleStart + .01), viewEnd), left, plotWidth);
+
+      if ($("showQueueWait").checked && transfer.queued !== null) {
+        const waitEnd = transfer.start ?? transfer.end ?? transfer.admitted ?? transfer.queued;
+        if (waitEnd >= viewStart && transfer.queued <= viewEnd) {
+          const queueX1 = timeToX(Math.max(transfer.queued, viewStart), left, plotWidth);
+          const queueX2 = timeToX(Math.min(waitEnd, viewEnd), left, plotWidth);
+          ctx.strokeStyle = colorFor(transfer.vctx) + "99";
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath(); ctx.moveTo(queueX1, y + 3); ctx.lineTo(Math.max(queueX1 + 1, queueX2), y + 3); ctx.stroke();
+          ctx.setLineDash([]);
+          if (transfer.admitted !== null && transfer.admitted >= viewStart && transfer.admitted <= viewEnd) {
+            const admitX = timeToX(transfer.admitted, left, plotWidth);
+            ctx.fillStyle = "#f6b94a";
+            ctx.fillRect(admitX - 1, y, 2, 6);
+          }
+        }
+      }
+
+      if (transfer.start !== null) {
+        const activeEnd = transfer.end ?? transfer.start + .01;
+        const x1 = timeToX(Math.max(transfer.start, viewStart), left, plotWidth);
+        const x2 = timeToX(Math.min(Math.max(activeEnd, transfer.start + .01), viewEnd), left, plotWidth);
+        const w = Math.max(2, x2 - x1);
+        const failed = ["abort", "reject", "dropped"].includes(transfer.status);
+        ctx.fillStyle = transfer.status === "complete" ? colorFor(transfer.vctx) : failed ? "#ff667a" : "#f6b94a";
+        ctx.fillRect(x1, y, w, 6);
+        if (transfer.logical_wrap) {
+          ctx.strokeStyle = "#ff667a";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x1 - 1, y - 2, w + 2, 10);
+          ctx.lineWidth = 1;
+        }
+      } else if (transfer.end !== null && transfer.end >= viewStart && transfer.end <= viewEnd) {
+        const x = timeToX(transfer.end, left, plotWidth);
+        ctx.fillStyle = transfer.status === "cancel" ? "#f6b94a" : "#ff667a";
+        ctx.fillRect(x - 3, y, 6, 6);
       }
       const detail = `TRANSFER ${transfer.status}\nVCTX=${transfer.vctx} seq=${transfer.seq} E${transfer.engine}/C${transfer.channel}\n` +
-        `t=${formatMs(transfer.start)}..${formatMs(end)} ms duration=${formatMs(transfer.duration)} ms\n` +
+        `queue=${formatMs(transfer.queued)} admit=${formatMs(transfer.admitted)} commit=${formatMs(transfer.start)} end=${formatMs(transfer.end)} ms\n` +
+        `QUEUE→ADMIT=${formatMs(transfer.queue_wait)} ms ADMIT→COMMIT=${formatMs(transfer.admit_wait)} ms COMMIT→END=${formatMs(transfer.duration)} ms\n` +
         `logical=${transfer.logical_start}..${transfer.logical_last} wrap=${transfer.logical_wrap}\n` +
         `physical=${transfer.physical_start}..${transfer.physical_last} wrap=${transfer.physical_wrap}\n` +
         `descriptors=${transfer.descriptors} quantum_commits=${transfer.quantum_commits ?? "?"} age_ms=${transfer.age_ms ?? "?"}\ncommit line=${transfer.commit_line} complete line=${transfer.complete_line ?? "?"}`;
-      hitRegions.push({x1, x2:x1+w, y1:y-3, y2:y+9, text:detail});
+      hitRegions.push({x1:hitX1, x2:Math.max(hitX1+3,hitX2), y1:y-3, y2:y+9, text:detail});
     });
   }
 
   c.events.forEach(event => {
     let show = false, color = "#93a4bd", radius = 2;
     if (ERROR_TYPES.has(event.type)) { show = true; color = "#ff667a"; radius = 5; }
+    else if (CANCEL_TYPES.has(event.type)) { show = true; color = "#f6b94a"; radius = 4; }
     else if (event.type === "CHANNEL_CURSOR_REBASE" && $("showRebases").checked) { show = true; color = event.fields.physical_idle_failed ? "#ff667a" : "#58d5e8"; radius = 3; }
     else if (event.type === "TRANSFER_COMPLETE" && $("showCompletes").checked) { show = true; color = colorFor(event.vctx); radius = 2; }
     else if (event.type === "DEVICE_SWITCH") { show = true; color = colorFor(event.vctx); radius = 4; }
     else if (event.type === "VCTX_QUANTUM_REQUEST") { show = true; color = "#f6b94a"; radius = 4; }
+    else if (event.type.startsWith("CONTROLLER_ABORT_")) { show = true; color = "#f6b94a"; radius = 5; }
     if (!show || event.t < viewStart || event.t > viewEnd) return;
     const x = timeToX(event.t, left, plotWidth), y = top + laneHeight + laneHeight / 2;
     ctx.fillStyle = color;
@@ -737,7 +1041,7 @@ function renderEvents() {
   filtered = filtered.slice(0, 1000);
   $("eventCount").textContent = `${total} matching${total > 1000 ? " · first 1000 shown" : ""}`;
   $("eventsBody").innerHTML = filtered.map(event => {
-    const cls = ERROR_TYPES.has(event.type) ? "event-error" : event.fields.logical_ring_wrap === 1 ? "event-wrap" : "";
+    const cls = ERROR_TYPES.has(event.type) ? "event-error" : CANCEL_TYPES.has(event.type) || event.fields.logical_ring_wrap === 1 ? "event-wrap" : "";
     return `<tr class="${cls}"><td>${formatMs(event.t)}</td><td>${event.vctx || "—"}</td><td>${esc(event.type)}</td><td>${event.line}</td><td class="message">${esc(event.message)}</td></tr>`;
   }).join("");
 }
@@ -767,7 +1071,7 @@ $("pan").addEventListener("input", event => {
   viewStart = (duration - span) * Number(event.target.value) / 1000;
   viewEnd = viewStart + span; draw(); renderEvents();
 });
-["showTransfers", "showSwitches", "showRebases", "showCompletes"].forEach(id => $(id).addEventListener("change", draw));
+["showTransfers", "showQueueWait", "showSwitches", "showRebases", "showCompletes"].forEach(id => $(id).addEventListener("change", draw));
 ["eventType", "vctxFilter", "search", "currentViewOnly"].forEach(id => $(id).addEventListener("input", renderEvents));
 
 canvas.addEventListener("wheel", event => {
@@ -841,7 +1145,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--include-wait-events",
         action="store_true",
-        help="include WAIT_EVENT/WAIT_DELIVER/WORKER_DRAIN rows (larger HTML)",
+        help="include WAIT_EVENT/WAIT_DELIVER/WAIT_ROLLBACK/WORKER_DRAIN rows (larger HTML)",
     )
     return parser.parse_args(argv)
 
@@ -875,9 +1179,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             f"switches={stats['device_switches']}, "
             f"quantums/requests={stats['quantum_begins']}/{stats['quantum_requests']}, "
             f"commits/quantum(avg,max)={stats['quantum_commit_avg']}/{stats['quantum_commit_max']}, "
-            f"commit/complete={stats['commits']}/{stats['completes']}, "
+            f"queue/admit/commit/complete={stats['queues']}/{stats['admits']}/"
+            f"{stats['commits']}/{stats['completes']}, "
+            f"request-wait(avg,max)={stats['quantum_request_wait_avg_ms']:.3f}/"
+            f"{stats['quantum_request_wait_max_ms']:.3f} ms, "
+            f"owner-gap={stats['owner_gap_ms']:.3f} ms, "
             f"wraps={stats['logical_wraps']}, stalls={stats['stalls']}"
         )
+        if case["trace_mismatches"]:
+            for mismatch in case["trace_mismatches"]:
+                print(f"    TRACE MISMATCH: {mismatch}")
     return 0
 
 

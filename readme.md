@@ -112,4 +112,9 @@ python3 tools/vctx_timeline.py logs/vctx-matrix-<RUN_ID> \
     --output /tmp/vctx-timeline.html
 ```
 
+timeline은 `QUEUE → ADMIT → COMMIT → COMPLETE/ABORT` transfer lifecycle을 분리해 표시한다.
+점선은 admission 대기 구간이며, device owner 막대는 `DEVICE_SWITCH`에서 시작해 해당
+VCTX의 firmware `pause`에서 끝난다. quantum request 선은 전환 요청부터 다음
+`VCTX_QUANTUM_BEGIN`까지의 drain/전환 대기 시간을 나타낸다.
+
 실행 결과는 `logs/` 아래에 저장된다.
