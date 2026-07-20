@@ -4,8 +4,8 @@ set -Eeuo pipefail
 
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly APP_DIR="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
-readonly DUAL_RUNNER="${DUAL_RUNNER:-${APP_DIR}/scripts/run/run_inference_multi.sh}"
-readonly SINGLE_RUNNER="${SINGLE_RUNNER:-${APP_DIR}/scripts/run/run_inference_single_control.sh}"
+readonly DUAL_RUNNER="${DUAL_RUNNER:-${APP_DIR}/scripts/run/run_vctx_two_process_resnet50.sh}"
+readonly SINGLE_RUNNER="${SINGLE_RUNNER:-${APP_DIR}/scripts/run/run_vctx_single_control_resnet50.sh}"
 readonly MATRIX_ROOT="${MATRIX_ROOT:-${APP_DIR}/logs}"
 readonly MATRIX_ID="$(date +'%Y%m%d-%H%M%S')-$$"
 readonly MATRIX_DIR="${MATRIX_ROOT}/vctx-matrix-${MATRIX_ID}"

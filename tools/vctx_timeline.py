@@ -681,6 +681,10 @@ input[type=range] { padding: 0; width: 150px; }
 .worker-grid span:nth-child(odd) { color: var(--muted); }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; color: var(--muted); margin: 9px 0; }
 .swatch { display: inline-block; width: 13px; height: 8px; border-radius: 2px; margin-right: 5px; }
+.swatch-queued { background: transparent; border-top: 2px dashed var(--muted); border-radius: 0; }
+.swatch-wrap { background: transparent; border: 2px solid var(--warn); height: 10px; }
+.swatch-error { background: var(--bad); }
+.swatch-cancel { background: #f6b94a; }
 .timeline-panel, .table-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
 .timeline-head { padding: 10px 13px; background: var(--panel2); border-bottom: 1px solid var(--line); }
 #canvasWrap { position: relative; overflow: hidden; }
@@ -808,10 +812,11 @@ function renderSummary() {
     ["QUEUE→COMMIT", `${formatMs(k.admission_latency_avg_ms)} avg · ${formatMs(k.admission_latency_max_ms)} max ms`, ""],
     ["COMMIT→COMPLETE", `${formatMs(k.transfer_duration_avg_ms)} avg · ${formatMs(k.transfer_duration_max_ms)} max ms`, ""],
     ["owner active / gap", `${formatMs(k.owner_active_ms)} / ${formatMs(k.owner_gap_ms)} ms`, k.owner_gap_ms ? "warn" : ""],
-    ["logical wraps", k.logical_wraps, k.logical_wraps ? "warn" : ""],
-    ["physical wraps", k.physical_wraps, k.physical_wraps ? "warn" : ""],
+    ["logical ring-wraps (normal)", k.logical_wraps, ""],
+    ["physical ring-wraps (normal)", k.physical_wraps, ""],
     ["rebase failures", k.rebase_failures, k.rebase_failures ? "bad" : "good"],
-    ["stall / reject / abort / open", `${k.stalls} / ${k.rejects} / ${k.aborts} / ${k.open_transfers}`, (k.stalls+k.rejects+k.aborts+k.open_transfers) ? "bad" : "good"],
+    ["faults: stall / reject / abort / drop / open", `${k.stalls} / ${k.rejects} / ${k.aborts} / ${k.drops} / ${k.open_transfers}`, (k.stalls+k.rejects+k.aborts+k.drops+k.open_transfers) ? "bad" : "good"],
+    ["cancellations", k.cancels, k.cancels ? "warn" : "good"],
   ];
   $("summaryCards").innerHTML = items.map(item => card(...item)).join("");
   $("workerCards").innerHTML = c.workers.map(worker => {
@@ -831,8 +836,10 @@ function renderSummary() {
       </div></div>`;
   }).join("");
   $("legend").innerHTML = c.vctxs.map(vctx => `<span><i class="swatch" style="background:${colorFor(vctx)}"></i>VCTX ${vctx}</span>`).join("") +
-    `<span><i class="swatch" style="background:#93a4bd"></i>dashed: queued</span>` +
-    `<span><i class="swatch" style="background:#ff667a"></i>wrap/error</span>`;
+    `<span><i class="swatch swatch-queued"></i>queued wait</span>` +
+    `<span><i class="swatch swatch-wrap"></i>normal logical ring-wrap</span>` +
+    `<span><i class="swatch swatch-error"></i>error / failed transfer</span>` +
+    `<span><i class="swatch swatch-cancel"></i>cancelled transfer</span>`;
 }
 
 function rebuildFilters() {
@@ -987,7 +994,7 @@ function draw() {
         ctx.fillStyle = transfer.status === "complete" ? colorFor(transfer.vctx) : failed ? "#ff667a" : "#f6b94a";
         ctx.fillRect(x1, y, w, 6);
         if (transfer.logical_wrap) {
-          ctx.strokeStyle = "#ff667a";
+          ctx.strokeStyle = "#ffcc66";
           ctx.lineWidth = 2;
           ctx.strokeRect(x1 - 1, y - 2, w + 2, 10);
           ctx.lineWidth = 1;
@@ -1000,8 +1007,8 @@ function draw() {
       const detail = `TRANSFER ${transfer.status}\nVCTX=${transfer.vctx} seq=${transfer.seq} E${transfer.engine}/C${transfer.channel}\n` +
         `queue=${formatMs(transfer.queued)} admit=${formatMs(transfer.admitted)} commit=${formatMs(transfer.start)} end=${formatMs(transfer.end)} ms\n` +
         `QUEUE→ADMIT=${formatMs(transfer.queue_wait)} ms ADMIT→COMMIT=${formatMs(transfer.admit_wait)} ms COMMIT→END=${formatMs(transfer.duration)} ms\n` +
-        `logical=${transfer.logical_start}..${transfer.logical_last} wrap=${transfer.logical_wrap}\n` +
-        `physical=${transfer.physical_start}..${transfer.physical_last} wrap=${transfer.physical_wrap}\n` +
+        `logical=${transfer.logical_start}..${transfer.logical_last} ring_wrap(normal)=${transfer.logical_wrap}\n` +
+        `physical=${transfer.physical_start}..${transfer.physical_last} ring_wrap(normal)=${transfer.physical_wrap}\n` +
         `descriptors=${transfer.descriptors} quantum_commits=${transfer.quantum_commits ?? "?"} age_ms=${transfer.age_ms ?? "?"}\ncommit line=${transfer.commit_line} complete line=${transfer.complete_line ?? "?"}`;
       hitRegions.push({x1:hitX1, x2:Math.max(hitX1+3,hitX2), y1:y-3, y2:y+9, text:detail});
     });
@@ -1184,7 +1191,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             f"request-wait(avg,max)={stats['quantum_request_wait_avg_ms']:.3f}/"
             f"{stats['quantum_request_wait_max_ms']:.3f} ms, "
             f"owner-gap={stats['owner_gap_ms']:.3f} ms, "
-            f"wraps={stats['logical_wraps']}, stalls={stats['stalls']}"
+            f"logical-wraps(normal)={stats['logical_wraps']}, "
+            f"stalls(errors)={stats['stalls']}"
         )
         if case["trace_mismatches"]:
             for mismatch in case["trace_mismatches"]:

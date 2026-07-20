@@ -7,8 +7,9 @@ readonly APP_DIR="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
 source "${APP_DIR}/scripts/lib/vctx_common.sh"
 
 readonly EXECUTABLE="${EXECUTABLE:-${APP_DIR}/build/multi_process}"
-readonly DEFAULT_MODEL="/home/taespberry/WORKSPACE/official_models/resnet_v1_50.hef"
-readonly DEFAULT_IMAGE="/home/taespberry/WORKSPACE/images/_images_1.png"
+readonly MODEL_PROFILE="${VCTX_EXPERIMENT_MODEL_PROFILE:?VCTX_EXPERIMENT_MODEL_PROFILE is required}"
+readonly DEFAULT_MODEL="${VCTX_EXPERIMENT_DEFAULT_MODEL:?VCTX_EXPERIMENT_DEFAULT_MODEL is required}"
+readonly DEFAULT_IMAGE="${VCTX_EXPERIMENT_DEFAULT_IMAGE:?VCTX_EXPERIMENT_DEFAULT_IMAGE is required}"
 readonly DEFAULT_CLASS_LABELS="/home/taespberry/WORKSPACE/labels/imagenet_labels.json"
 
 readonly MODEL_A="${MODEL_A:-${DEFAULT_MODEL}}"
@@ -60,7 +61,7 @@ readonly VCTX_TRACE_SESSION_UID="$(id -u)"
 readonly EXTERNAL_TRACE_STATE_FILE="${HAILO_VCTX_TRACE_STATE_FILE:-/tmp/hailo-vctx-trace-${VCTX_TRACE_SESSION_UID}.state}"
 readonly RUN_ROOT="${RUN_ROOT:-${APP_DIR}/logs}"
 readonly RUN_ID="$(date +'%Y%m%d-%H%M%S')-$$"
-readonly RUN_DIR="${RUN_ROOT}/vctx-four-${RUN_ID}"
+readonly RUN_DIR="${RUN_ROOT}/vctx-four-${MODEL_PROFILE}-${RUN_ID}"
 readonly BARRIER_DIR="${RUN_DIR}/barrier"
 readonly TRACE_LOG="${RUN_DIR}/dmesg-vctx.log"
 readonly TRACE_READER_LOG="${RUN_DIR}/dmesg-reader.log"
@@ -185,6 +186,7 @@ vctx_quantum_transfers="$(read_module_parameter "${VCTX_QUANTUM_TRANSFERS_PARAME
 {
     echo "run_id=${RUN_ID}"
     echo "mode=four-process-concurrent"
+    echo "model_profile=${MODEL_PROFILE}"
     echo "executable=${EXECUTABLE}"
     for index in "${!WORKER_IDS[@]}"; do
         worker_id="${WORKER_IDS[index]}"

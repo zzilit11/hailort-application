@@ -7,7 +7,7 @@ readonly APP_DIR="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
 source "${APP_DIR}/scripts/lib/vctx_common.sh"
 
 # Paths may be overridden without editing this script, for example:
-# MODEL_B=/path/to/another.hef FRAME_COUNT=500 ./scripts/run/run_inference_multi.sh
+# MODEL_B=/path/to/another.hef FRAME_COUNT=500 bash ./scripts/run/run_vctx_two_process_resnet50.sh
 readonly EXECUTABLE="${EXECUTABLE:-${APP_DIR}/build/multi_process}"
 readonly MODEL_A="${MODEL_A:-/home/taespberry/WORKSPACE/official_models/resnet_v1_50.hef}"
 readonly MODEL_B="${MODEL_B:-${MODEL_A}}"

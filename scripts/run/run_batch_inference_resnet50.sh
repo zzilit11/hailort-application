@@ -14,7 +14,7 @@ class_labels="${CLASS_LABELS:-/home/taespberry/WORKSPACE/labels/imagenet_labels.
 # Sanity check for files and directories
 if [[ ! -f "${executable}" ]]; then
     echo "ERROR: Executable not found at: ${executable}"
-    echo "Please run './scripts/build/build_inference.sh' first."
+    echo "Please run 'bash ./scripts/build/build_inference_driver.sh' first."
     exit 1
 fi
 
