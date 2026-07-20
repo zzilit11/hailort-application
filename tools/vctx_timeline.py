@@ -24,7 +24,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 
 DMESG_RE = re.compile(
-    r"^\[(?P<timestamp>\d+(?:\.\d+)?)\].*?"
+    r"^\[\s*(?P<timestamp>\d+(?:\.\d+)?)\].*?"
     r"vctx-(?P<source>trace|fw):\s*(?P<message>.*)$"
 )
 KV_RE = re.compile(r"(?P<key>[A-Za-z_][A-Za-z0-9_]*)=(?P<value>\"[^\"]*\"|\S+)")
